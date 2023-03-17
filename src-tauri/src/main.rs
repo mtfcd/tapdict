@@ -8,7 +8,7 @@ extern crate lazy_static;
 
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
-use tauri::{App, Manager, Window};
+use tauri::{Manager, Window};
 use tauri_runtime::GlobalShortcutManager;
 
 mod ocr;
@@ -46,7 +46,11 @@ async fn show_def(word: String, card_win: Arc<Mutex<Window>>) {
 
     let def = def_res.unwrap();
     println!("{}", def);
-    card_win.lock().unwrap().emit("showDef", def);
+    card_win
+        .lock()
+        .unwrap()
+        .emit("showDef", def)
+        .unwrap_or_else(|e| println!("emmit error {}", e));
 }
 
 fn handle_short_cut(card_win: Arc<Mutex<Window>>) {

@@ -1,5 +1,4 @@
 use screenshots::{DisplayInfo, Image, Screen};
-// use std::{fs, time::Instant};
 
 #[cfg(target_os = "windows")]
 pub fn get_mouse_position() -> (Image, [i32; 2]) {
@@ -19,15 +18,9 @@ pub fn get_mouse_position() {
 }
 
 fn get_img(x: i32, y: i32) -> Image {
-    // let start = Instant::now();
-
     let display = DisplayInfo::from_point(x, y).unwrap();
 
     let screen = Screen::new(&display);
     let image = screen.capture_area(x - 320, y - 240, 640, 480).unwrap();
-    // let buffer = image.buffer();
-    // fs::write("target/capture_display_with_point.png", buffer).unwrap();
-
-    // println!("运行耗时: {:?}", start.elapsed());
     return image;
 }

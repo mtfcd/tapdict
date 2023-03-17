@@ -3,10 +3,10 @@ use std::io::{BufRead, BufReader};
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
-use opencv::core::{Point2f, Scalar, Size, Vector};
+use opencv::core::{self, Point2f, Scalar, Size, Vector};
 use opencv::prelude::*;
 use opencv::types::{VectorOfPoint, VectorOfPoint2f, VectorOfString, VectorOfVectorOfPoint};
-use opencv::{core, dnn, imgcodecs, imgproc};
+use opencv::{dnn, imgcodecs, imgproc};
 
 use anyhow::{Error, Result};
 
@@ -49,7 +49,7 @@ pub fn extract_word(buf: Vec<u8>, pos: [i32; 2]) -> Result<String> {
 }
 
 lazy_static! {
-    static ref detector: Arc<Mutex<dnn::TextDetectionModel_EAST>> = {
+    static ref DETECTOR: Arc<Mutex<dnn::TextDetectionModel_EAST>> = {
         let conf_threshold = 0.5;
         let nms_threshold = 0.4;
         let width = 320;
@@ -70,8 +70,8 @@ lazy_static! {
         Arc::new(Mutex::new(d))
     };
 
-    static ref recognizer: Arc<Mutex<dnn::TextRecognitionModel>> = {
-        // Parameters.
+    static ref RECOGNIZER: Arc<Mutex<dnn::TextRecognitionModel>> = {
+    // Parameters.
     let rec_model_path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("crnn.onnx");
     let voc_path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("alphabet_36.txt");
 
@@ -101,13 +101,13 @@ lazy_static! {
 pub fn detect_text_region(img: &Mat) -> Result<VectorOfVectorOfPoint> {
     // Detection
     let mut det_results = VectorOfVectorOfPoint::new();
-    detector.lock().unwrap().detect(img, &mut det_results)?;
+    DETECTOR.lock().unwrap().detect(img, &mut det_results)?;
 
     return Ok(det_results);
 }
 
 pub fn recognize(img: Mat) -> Result<String> {
-    let recognition_result = recognizer.lock().unwrap().recognize(&img)?;
+    let recognition_result = RECOGNIZER.lock().unwrap().recognize(&img)?;
     return Ok(recognition_result);
 }
 

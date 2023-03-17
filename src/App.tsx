@@ -3,16 +3,12 @@ import { invoke } from "@tauri-apps/api/tauri";
 import { getCurrent, LogicalSize, appWindow } from "@tauri-apps/api/window";
 import {
   Card,
-  CardHeader,
   CardBody,
-  CardFooter,
   Flex,
   Box,
   Heading,
-  Text,
   IconButton,
   Button,
-  AbsoluteCenter,
   OrderedList,
   ListItem,
   InputGroup,
@@ -57,7 +53,7 @@ const parseDef = (defStr: string): Definition => {
 let a = 0;
 
 function App() {
-  const cardRef = useRef(null);
+  const cardRef = useRef<HTMLInputElement | null>(null);
   const [greetMsg, setGreetMsg] = useState("");
   const [name, setName] = useState("");
   const [def, setDef] = useState<Definition | null>(null);
@@ -68,7 +64,7 @@ function App() {
   }
 
   useEffect(() => {
-    if (cardRef.current !== null) {
+    if (cardRef && cardRef.current) {
       let width = cardRef.current.offsetWidth;
       let height = cardRef.current.offsetHeight;
       console.log(width, height);
