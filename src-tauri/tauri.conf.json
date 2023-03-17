@@ -48,7 +48,7 @@
         "providerShortName": null,
         "signingIdentity": null
       },
-      "resources": [],
+      "resources": ["./opencv_world470.dll"],
       "shortDescription": "",
       "targets": "all",
       "windows": {

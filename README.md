@@ -1,3 +1,10 @@
+# TapDict
+A toy dictionary app build with tauri, opencv and React
+
+
+# Usage
+Hovering mouse on a word and press Ctrl+Alt+c will show a simple definition.
+
 # Tauri + React + Typescript
 
 This template should help get you started developing with Tauri, React and Typescript in Vite.
