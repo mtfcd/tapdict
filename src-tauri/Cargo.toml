@@ -20,7 +20,7 @@ tauri = { version = "1.0", features = ["global-shortcut-all", "shell-open", "win
 winapi = { version = "0.3.9", features = ["winuser"] }
 tauri-runtime = "0.12.1"
 screenshots = "0.5.2"
-opencv = "0.78.0"
+opencv = {version="0.78.0", default-features = false, features = ["dnn", "imgcodecs", "imgproc"] }
 lazy_static = "1.4.0"
 reqwest = "0.11.14"
 anyhow = "1.0.69"

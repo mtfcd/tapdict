@@ -55,7 +55,7 @@ lazy_static! {
         let width = 320;
         let height = 320;
         let det_model_path =
-            PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("frozen_east_text_detection.pb");
+            PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("resources").join("frozen_east_text_detection.pb");
         let mut d =
             dnn::TextDetectionModel_EAST::from_file(det_model_path.to_str().unwrap(), "").unwrap();
         d
@@ -72,8 +72,8 @@ lazy_static! {
 
     static ref RECOGNIZER: Arc<Mutex<dnn::TextRecognitionModel>> = {
     // Parameters.
-    let rec_model_path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("crnn.onnx");
-    let voc_path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("alphabet_36.txt");
+    let rec_model_path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("resources").join("CRNN_VGG_BiLSTM_CTC_float16.onnx");
+    let voc_path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("resources").join("alphabet_36.txt");
 
     // Load networks.
     let mut r =
