@@ -66,7 +66,7 @@ fn handle_short_cut(card_win: Arc<Mutex<Window>>) {
     println!("get word take: {:?} {}", start.elapsed(), &word);
     tauri::async_runtime::spawn(async move {
         show_def(word, card_win).await;
-        println!("ocr take: {:?}", start.elapsed());
+        println!("oce take: {:?}", start.elapsed());
     });
 }
 
