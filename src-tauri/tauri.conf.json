@@ -39,7 +39,7 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "cc.mtfcd.tauri",
+      "identifier": "cc.mtfcd.tapdict",
       "longDescription": "",
       "macOS": {
         "entitlements": null,
@@ -48,7 +48,7 @@
         "providerShortName": null,
         "signingIdentity": null
       },
-      "resources": ["./resources/opencv_world470.dll", "./resources/alphabet_36.txt", "./resources/crnn.onnx", "./resources/frozen_east_text_detection.pb"],
+      "resources": [],
       "shortDescription": "",
       "targets": "all",
       "windows": {

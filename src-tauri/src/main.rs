@@ -3,17 +3,12 @@
     windows_subsystem = "windows"
 )]
 
-#[macro_use]
-extern crate lazy_static;
-
 use std::sync::{Arc, Mutex};
-use std::time::Instant;
 use tauri::{Manager, Window};
 use tauri_runtime::GlobalShortcutManager;
 
-mod ocr;
-mod os_utils;
-mod word;
+mod logic;
+mod utils;
 
 #[derive(Clone, serde::Serialize)]
 struct Payload {
@@ -37,36 +32,21 @@ fn greet(name: &str, window: tauri::Window) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
 
-async fn show_def(word: String, card_win: Arc<Mutex<Window>>) {
-    let def_res = word::lookup(&word).await;
-    if let Err(e) = &def_res {
-        println!("lookup error: {}", e);
-        return;
-    }
-
-    let def = def_res.unwrap();
-    println!("{}", def);
-    card_win
-        .lock()
-        .unwrap()
-        .emit("showDef", def)
-        .unwrap_or_else(|e| println!("emmit error {}", e));
-}
-
 fn handle_short_cut(card_win: Arc<Mutex<Window>>) {
-    let start = Instant::now();
-    let (img, pos) = os_utils::get_mouse_position();
-    let word_res = ocr::extract_word(img.buffer().to_vec(), pos);
-    if let Err(e) = word_res {
-        println!("get word error: {}", e.to_string());
-        return;
-    }
-
-    let word = word_res.unwrap();
-    println!("get word take: {:?} {}", start.elapsed(), &word);
     tauri::async_runtime::spawn(async move {
-        show_def(word, card_win).await;
-        println!("oce take: {:?}", start.elapsed());
+        let def_res = logic::get_def().await;
+        if def_res.is_none() {
+            println!("no word");
+            return;
+        }
+
+        let def = def_res.unwrap();
+        // println!("{}", def);
+        card_win
+            .lock()
+            .unwrap()
+            .emit("showDef", def)
+            .unwrap_or_else(|e| println!("emmit error {}", e));
     });
 }
 
