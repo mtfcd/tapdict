@@ -19,7 +19,7 @@ struct Meta {
     app_shortdef: AppShortdef,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Default)]
 struct Sound {
     audio: String,
 }
@@ -27,6 +27,7 @@ struct Sound {
 #[derive(Serialize, Deserialize)]
 struct Pronouce {
     ipa: String,
+    #[serde(default)]
     sound: Sound,
 }
 
@@ -51,6 +52,7 @@ async fn req_api(word: &str) -> Result<Value> {
     .await?;
 
     let txt = res.text().await?;
+    debug!("get api res: {}", &txt);
     let v: Value = serde_json::from_str(&txt)?;
     Ok(v)
 }
@@ -72,7 +74,7 @@ pub async fn lookup(word: &str) -> Result<String> {
         if !ele.is_string() {
             return Err(Error::msg("wrong type"));
         }
-        println!("retry {:?}", arr);
+        debug!("retry {:?}", arr);
         res = req_api(&ele.as_str().unwrap()).await?
     };
 

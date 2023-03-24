@@ -1,5 +1,4 @@
 use screenshots::{DisplayInfo, Image, Screen};
-use std::fs;
 
 const IMG_WIDTH: i32 = 200;
 const IMG_HEIGHT: i32 = 100;
@@ -18,7 +17,7 @@ pub fn get_img_pos() -> (Image, (i32, i32)) {
 
 #[cfg(target_os = "linux")]
 pub fn get_img_pos() {
-    println!("not surport");
+    info!("not surport");
 }
 
 #[derive(Debug)]
@@ -31,23 +30,12 @@ struct Area {
 }
 
 fn get_img(x: i32, y: i32) -> (Image, (i32, i32)) {
-    dbg!(x, y);
     let display = DisplayInfo::from_point(x, y).unwrap();
     let area = compute_img_area(&display, [x, y]);
     let screen = Screen::new(&display);
     let image = screen
         .capture_area(area.left, area.top, area.width, area.height)
         .unwrap(); // 这块有点坑，有scale_factor
-    fs::write(
-        format!(
-            "target/{}-{}-{}.png",
-            screen.display_info.id,
-            image.width(),
-            image.height()
-        ),
-        image.buffer(),
-    )
-    .unwrap();
     return (image, area.mouse_pos);
 }
 
