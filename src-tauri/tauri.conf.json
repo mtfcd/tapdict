@@ -48,7 +48,7 @@
         "providerShortName": null,
         "signingIdentity": null
       },
-      "resources": [],
+      "resources": ["./resources/eng.traineddata"],
       "shortDescription": "",
       "targets": "all",
       "windows": {

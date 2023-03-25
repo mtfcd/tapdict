@@ -5,6 +5,9 @@
 
 #[macro_use]
 extern crate log;
+#[macro_use]
+extern crate lazy_static;
+
 use env_logger::{Builder, Target};
 use std::{
     fs::{self, OpenOptions},
