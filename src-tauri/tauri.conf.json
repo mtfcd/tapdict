@@ -8,9 +8,13 @@
   },
   "package": {
     "productName": "tapdict",
-    "version": "0.1.0"
+    "version": "0.2.0"
   },
   "tauri": {
+    "systemTray": {
+      "iconPath": "icons/32x32.png",
+      "iconAsTemplate": true
+    },
     "allowlist": {
       "all": false,
       "globalShortcut": {
@@ -21,7 +25,8 @@
         "open": true
       },
       "window": {
-        "setSize": true
+        "setSize": true,
+        "setAlwaysOnTop": true
       }
     },
     "bundle": {
@@ -69,7 +74,8 @@
         "resizable": false,
         "title": "lookup",
         "width": 448,
-        "height": 400
+        "height": 400,
+        "alwaysOnTop": true
       }
     ]
   }

@@ -8,13 +8,10 @@ extern crate log;
 #[macro_use]
 extern crate lazy_static;
 
-use env_logger::{Builder, Target};
-use std::{
-    fs::{self, OpenOptions},
-    sync::{Arc, Mutex},
-};
-use tauri::{App, Manager, Window};
-use tauri_runtime::GlobalShortcutManager;
+use std::sync::{Arc, Mutex};
+use tauri::{AppHandle, GlobalShortcutManager, Manager, Window};
+use tauri::{CustomMenuItem, SystemTray, SystemTrayEvent, SystemTrayMenu};
+use tauri_plugin_log::LogTarget;
 
 mod logic;
 mod utils;
@@ -22,23 +19,6 @@ mod utils;
 #[derive(Clone, serde::Serialize)]
 struct Payload {
     message: String,
-}
-
-// Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-#[tauri::command]
-fn greet(name: &str, window: tauri::Window) -> String {
-    std::thread::spawn(move || {
-        std::thread::sleep(std::time::Duration::from_secs(5));
-        window
-            .emit(
-                "inputPath",
-                Payload {
-                    message: "fake path".into(),
-                },
-            )
-            .unwrap();
-    });
-    format!("Hello, {}! You've been greeted from Rust!", name)
 }
 
 fn handle_short_cut(card_win: Arc<Mutex<Window>>) {
@@ -50,37 +30,55 @@ fn handle_short_cut(card_win: Arc<Mutex<Window>>) {
         }
 
         let def = def_res.unwrap();
-        // println!("{}", def);
-        card_win
-            .lock()
-            .unwrap()
-            .emit("showDef", def)
+        let win = card_win.lock().unwrap();
+        if !win.is_visible().unwrap() {
+            win.show().unwrap();
+        }
+        win.emit("showDef", def)
             .unwrap_or_else(|e| println!("emmit error {}", e));
     });
 }
 
-fn init_log(app: &App) {
-    let path_resolver = app.path_resolver();
-    let log_path = path_resolver.app_log_dir().unwrap();
-    if !log_path.exists() {
-        fs::create_dir_all(&log_path).unwrap();
+fn handle_tray_event(app: &AppHandle, event: SystemTrayEvent) {
+    match event {
+        SystemTrayEvent::MenuItemClick { id, .. } => match id.as_str() {
+            "quit" => {
+                std::process::exit(0);
+            }
+            "hide" => {
+                app.get_window("main").unwrap().hide().unwrap();
+            }
+            _ => {}
+        },
+        SystemTrayEvent::DoubleClick { .. } => {
+            app.get_window("main").unwrap().show().unwrap();
+        }
+        _ => {}
     }
-    println!("log path {:?}", log_path);
-    let log_file = OpenOptions::new()
-        .append(true)
-        .create(true)
-        .open(log_path.join("app.log"))
-        .unwrap();
-    Builder::from_default_env()
-        .target(Target::Pipe(Box::new(log_file)))
-        .init();
-    info!("app start");
+}
+
+fn build_tray() -> SystemTray {
+    let quit = CustomMenuItem::new("quit".to_string(), "Quit");
+    // let reindex = CustomMenuItem::new("reindex".to_string(), "Reindex");
+    let upgrade = CustomMenuItem::new("upgrade".to_string(), "Upgrade");
+    let hide = CustomMenuItem::new("hide".to_string(), "Hide Window");
+    let tray_menu = SystemTrayMenu::new()
+        .add_item(upgrade)
+        // .add_item(reindex)
+        .add_item(hide)
+        .add_item(quit);
+    SystemTray::new().with_menu(tray_menu)
 }
 
 fn main() {
     tauri::Builder::default()
+        .plugin(
+            tauri_plugin_log::Builder::default()
+                .targets([LogTarget::LogDir, LogTarget::Stdout, LogTarget::Webview])
+                .timezone_strategy(tauri_plugin_log::TimezoneStrategy::UseLocal)
+                .build(),
+        )
         .setup(move |app| {
-            init_log(app);
             let card_win = app.get_window("main").unwrap();
             let ref_win = Arc::new(Mutex::new(card_win));
             let mut gs_manager = app.global_shortcut_manager();
@@ -89,7 +87,15 @@ fn main() {
                 .unwrap();
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![greet])
+        .system_tray(build_tray())
+        .on_system_tray_event(|app, event| handle_tray_event(app, event))
+        .on_window_event(|event| match event.event() {
+            tauri::WindowEvent::CloseRequested { api, .. } => {
+                event.window().hide().unwrap();
+                api.prevent_close();
+            }
+            _ => {}
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
