@@ -59,14 +59,8 @@ fn handle_tray_event(app: &AppHandle, event: SystemTrayEvent) {
 
 fn build_tray() -> SystemTray {
     let quit = CustomMenuItem::new("quit".to_string(), "Quit");
-    // let reindex = CustomMenuItem::new("reindex".to_string(), "Reindex");
-    let upgrade = CustomMenuItem::new("upgrade".to_string(), "Upgrade");
     let hide = CustomMenuItem::new("hide".to_string(), "Hide Window");
-    let tray_menu = SystemTrayMenu::new()
-        .add_item(upgrade)
-        // .add_item(reindex)
-        .add_item(hide)
-        .add_item(quit);
+    let tray_menu = SystemTrayMenu::new().add_item(hide).add_item(quit);
     SystemTray::new().with_menu(tray_menu)
 }
 
