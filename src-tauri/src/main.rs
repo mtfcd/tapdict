@@ -77,7 +77,7 @@ fn main() {
             let ref_win = Arc::new(Mutex::new(card_win));
             let mut gs_manager = app.global_shortcut_manager();
             gs_manager
-                .register("Ctrl+Alt+c", move || handle_short_cut(ref_win.clone()))
+                .register("Ctrl+Shift+c", move || handle_short_cut(ref_win.clone()))
                 .unwrap();
             Ok(())
         })

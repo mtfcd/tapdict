@@ -34,6 +34,7 @@ struct Pronouce {
 #[derive(Serialize, Deserialize)]
 struct HeadWordInfo {
     hw: String,
+    #[serde(default)]
     prs: Vec<Pronouce>,
 }
 
@@ -80,4 +81,13 @@ pub async fn lookup(word: &str) -> Result<String> {
 
     let def: Word = serde_json::from_value(def_value)?;
     Ok(serde_json::to_string_pretty(&def)?)
+}
+
+#[test]
+fn test_lookup() {
+    tauri::async_runtime::block_on(async {
+        println!("test BCE");
+        let res = lookup("BCE").await.unwrap();
+        println!("{}", res);
+    });
 }

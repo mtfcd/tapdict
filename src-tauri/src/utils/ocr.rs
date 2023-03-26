@@ -1,17 +1,16 @@
 use anyhow::{Error, Result};
 use std::path::Path;
-use tesseract::{OcrEngineMode, Tesseract};
+use tesseract::Tesseract;
 
 lazy_static! {
     static ref TESSDATA_DIR: &'static Path = Path::new("./resources");
 }
 
 pub fn get_word(buf: Vec<u8>, pos: (i32, i32)) -> Result<String> {
-    let mut tes =
-        Tesseract::new_with_oem(TESSDATA_DIR.to_str(), Some("eng"), OcrEngineMode::Default)
-            .unwrap()
-            .set_image_from_mem(&buf)
-            .unwrap();
+    let mut tes = Tesseract::new(TESSDATA_DIR.to_str(), Some("eng"))
+        .unwrap()
+        .set_image_from_mem(&buf)
+        .unwrap();
 
     let tsv = tes.get_tsv_text(1).unwrap();
     let word = find_word_in_pos(&tsv, pos);
@@ -37,4 +36,11 @@ fn find_word_in_pos(tsv: &str, pos: (i32, i32)) -> Result<String> {
         }
     }
     return Err(Error::msg("tsv word not found"));
+}
+
+#[test]
+fn ocr_large_word() {
+    let frame = include_bytes!("screen.png");
+    let word = get_word(frame.to_vec(), (100, 50)).unwrap();
+    assert_eq!("Community", word);
 }

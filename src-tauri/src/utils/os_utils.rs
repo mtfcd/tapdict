@@ -34,8 +34,12 @@ fn get_img(x: i32, y: i32) -> (Image, (i32, i32)) {
     let area = compute_img_area(&display, [x, y]);
     let screen = Screen::new(&display);
     let image = screen
-        .capture_area(area.left, area.top, area.width, area.height)
-        .unwrap(); // 这块有点坑，有scale_factor
+        .capture_area(area.left, area.top, area.width, area.height) // scale_factr
+        .unwrap();
+    // {
+    // use std::fs;
+    // fs::write("screen.png", image.buffer()).unwrap();
+    // }
     return (image, area.mouse_pos);
 }
 
