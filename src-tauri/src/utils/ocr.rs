@@ -3,11 +3,10 @@ use regex::Regex;
 use std::path::Path;
 use tesseract::Tesseract;
 
-lazy_static! {
-    static ref TESSDATA_DIR: &'static Path = Path::new("./resources");
-}
-
 pub fn get_word(buf: Vec<u8>, pos: (i32, i32)) -> Result<String> {
+    lazy_static! {
+        static ref TESSDATA_DIR: &'static Path = Path::new("./resources");
+    }
     let mut tes = Tesseract::new(TESSDATA_DIR.to_str(), Some("eng"))
         .unwrap()
         .set_image_from_mem(&buf)
