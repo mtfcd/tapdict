@@ -1,4 +1,5 @@
 use anyhow::{Error, Result};
+use regex::Regex;
 use std::path::Path;
 use tesseract::Tesseract;
 
@@ -13,8 +14,26 @@ pub fn get_word(buf: Vec<u8>, pos: (i32, i32)) -> Result<String> {
         .unwrap();
 
     let tsv = tes.get_tsv_text(1).unwrap();
-    let word = find_word_in_pos(&tsv, pos);
-    word
+    find_word_in_pos(&tsv, pos)
+}
+
+fn extract_single_word(line_part: &str, x: i32, width: i32) -> &str {
+    lazy_static! {
+        static ref PAT: Regex = Regex::new(r"\W").unwrap();
+    }
+    if !PAT.is_match(line_part) {
+        return line_part;
+    }
+    let estimate = line_part.len() * x as usize / width as usize;
+    let mut acc = 0;
+    for seg in PAT.split(line_part) {
+        let acc_word_len = seg.len() + acc;
+        if acc_word_len > estimate {
+            return seg;
+        }
+        acc = acc_word_len + 1;
+    }
+    line_part
 }
 
 fn find_word_in_pos(tsv: &str, pos: (i32, i32)) -> Result<String> {
@@ -32,10 +51,11 @@ fn find_word_in_pos(tsv: &str, pos: (i32, i32)) -> Result<String> {
         let x = pos.0 - left;
         let y = pos.1 - top;
         if 0 < x && x < width && 0 < y && y < height && conf > 0.0 {
-            return Ok(line_parts[11].to_lowercase());
+            let word = extract_single_word(line_parts[11], x, width);
+            return Ok(word.to_lowercase());
         }
     }
-    return Err(Error::msg("tsv word not found"));
+    Err(Error::msg("tsv word not found"))
 }
 
 #[test]
@@ -43,4 +63,13 @@ fn ocr_large_word() {
     let frame = include_bytes!("screen.png");
     let word = get_word(frame.to_vec(), (100, 50)).unwrap();
     assert_eq!("Community", word);
+}
+
+#[test]
+fn test_extract_singal_word() {
+    let line = "arts[8].parse()?;";
+    let x = 100;
+    let width = 148;
+    let word = extract_single_word(line, x, width);
+    assert_eq!("parse", word);
 }

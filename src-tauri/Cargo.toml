@@ -26,6 +26,7 @@ tesseract = "0.13.0"
 log = "0.4.17"
 lazy_static = "1.4.0"
 tauri-plugin-log = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "dev", version = "0.1.0" }
+regex = {version = "1.7.3"}
 
 [features]
 # by default Tauri runs in production mode

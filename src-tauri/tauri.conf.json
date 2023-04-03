@@ -73,6 +73,7 @@
         "fullscreen": false,
         "resizable": false,
         "title": "lookup",
+        "label": "lookup",
         "width": 448,
         "height": 400,
         "alwaysOnTop": true

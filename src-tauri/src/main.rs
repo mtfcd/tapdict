@@ -46,12 +46,12 @@ fn handle_tray_event(app: &AppHandle, event: SystemTrayEvent) {
                 std::process::exit(0);
             }
             "hide" => {
-                app.get_window("main").unwrap().hide().unwrap();
+                app.get_window("lookup").unwrap().hide().unwrap();
             }
             _ => {}
         },
         SystemTrayEvent::DoubleClick { .. } => {
-            app.get_window("main").unwrap().show().unwrap();
+            app.get_window("lookup").unwrap().show().unwrap();
         }
         _ => {}
     }
@@ -73,7 +73,7 @@ fn main() {
                 .build(),
         )
         .setup(move |app| {
-            let card_win = app.get_window("main").unwrap();
+            let card_win = app.get_window("lookup").unwrap();
             let ref_win = Arc::new(Mutex::new(card_win));
             let mut gs_manager = app.global_shortcut_manager();
             gs_manager

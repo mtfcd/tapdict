@@ -2857,6 +2857,7 @@ dependencies = [
  "anyhow",
  "lazy_static",
  "log",
+ "regex",
  "reqwest",
  "screenshots",
  "serde",
