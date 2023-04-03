@@ -41,12 +41,35 @@ type Definition = {
   };
 };
 
+function parseEntry(text: string = ''): any {
+  if (Array.isArray(text))
+    return parseEntry(text[0]?.[0]?.[1] || '');
+
+  return text
+    .replace(/^\{bc\}/, '')
+    .replace(/( )?\{bc\}/g, ': ')
+    .replace(/( )?\{dx\}/g, '<br /><small>')
+    .replace(/( )?\{\/dx\}/g, '</small>')
+    .replace(/(?:\{(?:sx|dxt|a_link|d_link|et_link|i_link|mat)\|)([\w\s.,:+-]+)(?:[|])?([\w\s.,:+-]+)?(?:\|)?(?:\d+)?\}/g, (_, text, href) =>
+      `<a href="?q=${href || text}">${text}</a>`
+    )
+    .replace(/(?:\{it\})([\w\s.,:+-]+)(?:\{\/it\})/g, (_, text) => `<em>${text}</em>`)
+    .replace(/(?:\{)(\/)?(inf|sup)(\})/g, (_, slash, tag) =>
+      `<${slash || ''}${tag === 'sup' ? 'sup' : 'sub'}>`
+    )
+  ;
+}
+
+function parseCaption(text: string = '') {
+  return text
+    .replace(/(?:\{it\})([\w\s.,:+-]+)(?:\{\/it\} )/g, (_, text) => `<br /><em>${text}</em> `)
+}
+
 const parseDef = (defStr: string): Definition => {
   let def = JSON.parse(defStr);
   if (Array.isArray(def)) {
     def = def[0];
   }
-  // console.log(def);
   return def;
 };
 
@@ -111,7 +134,24 @@ function App() {
                   />
                 </InputRightElement>
               </InputGroup>
-              <Button flex="1" variant="ghost" leftIcon={<AiOutlineSound />}>
+              <Button flex="1" variant="ghost" leftIcon={<AiOutlineSound />} onClick={() => {
+                const mp3 = def?.hwi?.prs[0]?.sound?.audio;
+                if (mp3) {
+                  let subDir = mp3[0];
+                  if (mp3.startsWith("bix")) {
+                    subDir = "bix"
+                  } else if (mp3.startsWith("gg")) {
+                    subDir = "gg"
+                  } else if (mp3.startsWith("_")) {
+                    subDir = "number"
+                  }
+                  const format = "mp3";
+                  const mp3Url = `https://media.merriam-webster.com/audio/prons/en/us/${format}/${subDir}/${mp3}.${format}`
+                  console.log(mp3Url);
+                  
+                  new Audio(mp3Url).play();
+                }
+              }}>
                 {def?.hwi?.prs[0]?.ipa}
               </Button>
             </Box>
@@ -130,7 +170,7 @@ function App() {
         <OrderedList>
           {def?.meta &&
             def?.meta["app-shortdef"]?.def?.map((d, idx) => (
-              <ListItem key={idx}>{d}</ListItem>
+              <ListItem key={idx} dangerouslySetInnerHTML={{ __html: parseEntry(d) }}></ListItem>
             ))}
         </OrderedList>
       </CardBody>

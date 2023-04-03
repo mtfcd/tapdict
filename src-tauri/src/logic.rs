@@ -18,9 +18,7 @@ pub fn get_word() -> Option<String> {
 pub async fn get_def() -> Option<String> {
     let start = Instant::now();
     let word = get_word();
-    if word.is_none() {
-        return None;
-    }
+    word.as_ref()?;
 
     let word = word.unwrap();
     info!("get word take: {:?} {}", start.elapsed(), &word);
