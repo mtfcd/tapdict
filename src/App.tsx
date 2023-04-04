@@ -17,9 +17,7 @@ import {
 } from "@chakra-ui/react";
 import { BiSearch } from "react-icons/bi";
 import { BsClipboardPlus } from "react-icons/bs";
-import { MdExpandMore } from "react-icons/md";
 import { AiOutlineSound } from "react-icons/ai";
-import { j } from "@tauri-apps/api/event-2a9960e7";
 // import "./App.css";
 
 type Definition = {
@@ -60,10 +58,10 @@ function parseEntry(text: string = ''): any {
   ;
 }
 
-function parseCaption(text: string = '') {
-  return text
-    .replace(/(?:\{it\})([\w\s.,:+-]+)(?:\{\/it\} )/g, (_, text) => `<br /><em>${text}</em> `)
-}
+// function parseCaption(text: string = '') {
+//   return text
+//     .replace(/(?:\{it\})([\w\s.,:+-]+)(?:\{\/it\} )/g, (_, text) => `<br /><em>${text}</em> `)
+// }
 
 const parseDef = (defStr: string): Definition => {
   let def = JSON.parse(defStr);
@@ -77,21 +75,34 @@ let a = 0;
 
 function App() {
   const cardRef = useRef<HTMLInputElement | null>(null);
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
   const [def, setDef] = useState<Definition | null>(null);
+  const parseAndSetDef = (payload: string) => {
+        let new_def = parseDef(payload);
+        if (new_def.meta) {
+          const hw = new_def.meta["app-shortdef"].hw.split(/:/)[0];
+          new_def.meta["app-shortdef"].hw = hw;
+          setDef(new_def);
+        }
+  }
+  const [word, setWord] = useState<string>("");
 
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-    setGreetMsg(await invoke("greet", { name }));
+  function handleInputChange(e: any) {
+    setWord(e.target.value);
+  }
+  async function lookup() {
+    const res = await invoke("lookup", { word });
+    parseAndSetDef(res as string)
   }
 
   useEffect(() => {
     if (cardRef && cardRef.current) {
       let width = cardRef.current.offsetWidth;
       let height = cardRef.current.offsetHeight;
-      console.log(width, height);
       getCurrent().setSize(new LogicalSize(width, height));
+    }
+    const hw = def?.meta && def.meta["app-shortdef"]?.hw;
+    if (hw) {
+      setWord(hw)
     }
   }, [def]);
 
@@ -99,33 +110,30 @@ function App() {
     const unlisten = appWindow.listen<string>("showDef", (event) => {
       a = a + 1;
       if (event.payload) {
-        let new_def = parseDef(event.payload);
-        if (new_def.meta) {
-          const hw = new_def.meta["app-shortdef"].hw.split(/:/)[0];
-          new_def.meta["app-shortdef"].hw = hw;
-          setDef(new_def);
-        }
+        parseAndSetDef(event.payload)
       }
     });
   }, []);
 
   return (
     <Card maxW="md" ref={cardRef}>
-      {/* <CardHeader></CardHeader> */}
       <CardBody>
         <Flex>
           <Flex flex="1" gap="4" alignItems="center" flexWrap="wrap">
             <Box>
               <InputGroup size="sm">
                 <Input
-                  placeholder={def?.meta && def.meta["app-shortdef"]?.hw}
+                  placeholder={word}
+                  onChange={handleInputChange}
+                  type="search"
+                  value={word}
                 />
                 <InputRightElement width="2.5rem">
                   <IconButton
                     h="1.75rem"
                     size="sm"
                     onClick={() => {
-                      console.log("search");
+                      lookup();
                     }}
                     variant="ghost"
                     colorScheme="gray"
@@ -148,7 +156,6 @@ function App() {
                   const format = "mp3";
                   const mp3Url = `https://media.merriam-webster.com/audio/prons/en/us/${format}/${subDir}/${mp3}.${format}`
                   console.log(mp3Url);
-                  
                   new Audio(mp3Url).play();
                 }
               }}>
@@ -161,7 +168,7 @@ function App() {
             colorScheme="gray"
             aria-label="See menu"
             onClick={() => {
-              console.log("clicked");
+              console.log("add to note");
             }}
             icon={<BsClipboardPlus />}
           />

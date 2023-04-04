@@ -12,13 +12,17 @@ use std::sync::{Arc, Mutex};
 use tauri::{AppHandle, GlobalShortcutManager, Manager, Window};
 use tauri::{CustomMenuItem, SystemTray, SystemTrayEvent, SystemTrayMenu};
 use tauri_plugin_log::LogTarget;
+use utils::word;
 
 mod logic;
 mod utils;
 
-#[derive(Clone, serde::Serialize)]
-struct Payload {
-    message: String,
+#[tauri::command]
+async fn lookup(word: String) -> Result<String, String> {
+    match word::lookup(&word).await {
+        Ok(res) => Ok(res),
+        Err(e) => Err(e.to_string()),
+    }
 }
 
 fn handle_short_cut(card_win: Arc<Mutex<Window>>) {
@@ -82,14 +86,14 @@ fn main() {
             Ok(())
         })
         .system_tray(build_tray())
-        .on_system_tray_event(|app, event| handle_tray_event(app, event))
-        .on_window_event(|event| match event.event() {
-            tauri::WindowEvent::CloseRequested { api, .. } => {
+        .on_system_tray_event(handle_tray_event)
+        .on_window_event(|event| {
+            if let tauri::WindowEvent::CloseRequested { api, .. } = event.event() {
                 event.window().hide().unwrap();
                 api.prevent_close();
             }
-            _ => {}
         })
+        .invoke_handler(tauri::generate_handler![lookup])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

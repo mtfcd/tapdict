@@ -1,7 +1,5 @@
 use crate::utils::{ocr, os_utils, word};
 
-use std::time::Instant;
-
 pub fn get_word() -> Option<String> {
     let (img, pos) = os_utils::get_img_pos();
     let buf = img.buffer();
@@ -16,12 +14,11 @@ pub fn get_word() -> Option<String> {
 }
 
 pub async fn get_def() -> Option<String> {
-    let start = Instant::now();
     let word = get_word();
     word.as_ref()?;
 
     let word = word.unwrap();
-    info!("get word take: {:?} {}", start.elapsed(), &word);
+    info!("get word: {}", &word);
     let def_res = word::lookup(&word).await;
     if let Err(e) = &def_res {
         error!("lookup error: {}", e);
@@ -29,7 +26,7 @@ pub async fn get_def() -> Option<String> {
     }
 
     let def = def_res.unwrap();
-    info!("get def take: {:?}", start.elapsed());
+    info!("get def");
     Some(def)
 }
 
