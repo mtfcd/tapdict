@@ -3,13 +3,14 @@ import { invoke } from "@tauri-apps/api/tauri";
 import { getCurrent, LogicalSize, appWindow } from "@tauri-apps/api/window";
 import {
   Card,
-  CardBody,
+    CardBody,
   Flex,
-  Box,
+  Spacer,
   Heading,
   IconButton,
   Button,
   OrderedList,
+  Tooltip,
   ListItem,
   InputGroup,
   InputRightElement,
@@ -18,6 +19,7 @@ import {
 import { BiSearch } from "react-icons/bi";
 import { BsClipboardPlus } from "react-icons/bs";
 import { AiOutlineSound } from "react-icons/ai";
+import { MdOpenInBrowser } from "react-icons/md";
 // import "./App.css";
 
 type Definition = {
@@ -118,31 +120,55 @@ function App() {
   return (
     <Card maxW="md" ref={cardRef}>
       <CardBody>
-        <Flex>
-          <Flex flex="1" gap="4" alignItems="center" flexWrap="wrap">
-            <Box>
-              <InputGroup size="sm">
-                <Input
-                  placeholder={word}
-                  onChange={handleInputChange}
-                  type="search"
-                  value={word}
+          <Flex flex="1" gap="4" alignItems="center">
+            <InputGroup size="sm">
+              <Input
+                placeholder={word}
+                onChange={handleInputChange}
+                type="search"
+                value={word}
+              />
+              <InputRightElement width="2.5rem">
+                <IconButton
+                  h="1.75rem"
+                  size="sm"
+                  onClick={() => {
+                    lookup();
+                  }}
+                  variant="ghost"
+                  colorScheme="gray"
+                  aria-label="See menu"
+                  icon={<BiSearch />}
                 />
-                <InputRightElement width="2.5rem">
-                  <IconButton
-                    h="1.75rem"
-                    size="sm"
-                    onClick={() => {
-                      lookup();
-                    }}
-                    variant="ghost"
-                    colorScheme="gray"
-                    aria-label="See menu"
-                    icon={<BiSearch />}
-                  />
-                </InputRightElement>
-              </InputGroup>
-              <Button flex="1" variant="ghost" leftIcon={<AiOutlineSound />} onClick={() => {
+              </InputRightElement>
+            </InputGroup>
+            <Spacer />
+          <Flex>
+            <Tooltip label="open detail in browser">
+            <IconButton
+              variant="ghost"
+              colorScheme="gray"
+              aria-label="See menu"
+              onClick={() => {
+                console.log("open in browser");
+              }}
+              icon={<MdOpenInBrowser />}
+            />
+            </Tooltip>
+            <Tooltip label="add to note">
+            <IconButton
+              variant="ghost"
+              colorScheme="gray"
+              aria-label="See menu"
+              onClick={() => {
+                console.log("add to note");
+              }}
+              icon={<BsClipboardPlus />}
+            />
+            </Tooltip>
+          </Flex>
+          </Flex>
+              <Button borderRadius="full" flex="1" variant="ghost" leftIcon={<AiOutlineSound />} onClick={() => {
                 const mp3 = def?.hwi?.prs[0]?.sound?.audio;
                 if (mp3) {
                   let subDir = mp3[0];
@@ -161,18 +187,6 @@ function App() {
               }}>
                 {def?.hwi?.prs[0]?.ipa}
               </Button>
-            </Box>
-          </Flex>
-          <IconButton
-            variant="ghost"
-            colorScheme="gray"
-            aria-label="See menu"
-            onClick={() => {
-              console.log("add to note");
-            }}
-            icon={<BsClipboardPlus />}
-          />
-        </Flex>
         <Heading size="xs">{def?.meta && def.meta["app-shortdef"]?.fl}</Heading>
         <OrderedList>
           {def?.meta &&
@@ -181,31 +195,6 @@ function App() {
             ))}
         </OrderedList>
       </CardBody>
-      {/* <Image
-        objectFit="cover"
-        src="https://images.unsplash.com/photo-1531403009284-440f080d1e12?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1770&q=80"
-        alt="Chakra UI"
-      /> */}
-
-      {/* <CardFooter
-        justify="space-between"
-        flexWrap="wrap"
-        sx={{
-          "& > button": {
-            minW: "136px",
-          },
-        }}
-      >
-          <IconButton
-            variant="ghost"
-            colorScheme="gray"
-            aria-label="See menu"
-            onClick={() => {
-              console.log("clicked");
-            }}
-            icon={<MdExpandMore />}
-          />
-      </CardFooter> */}
     </Card>
   );
 }
