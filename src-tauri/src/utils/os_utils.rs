@@ -4,21 +4,28 @@ const IMG_WIDTH: i32 = 200;
 const IMG_HEIGHT: i32 = 100;
 
 #[cfg(target_os = "windows")]
-pub fn get_img_pos() -> (Image, (i32, i32)) {
+mod os_tool {
+    use super::{get_img, Image};
     use winapi::shared::windef::POINT;
     use winapi::um::winuser::GetCursorPos;
 
-    let mut point: POINT = POINT { x: 0, y: 0 };
-    unsafe {
-        GetCursorPos(&mut point);
+    pub fn get_img_pos() -> (Image, (i32, i32)) {
+        let mut point: POINT = POINT { x: 0, y: 0 };
+        unsafe {
+            GetCursorPos(&mut point);
+        }
+        get_img(point.x, point.y)
     }
-    get_img(point.x, point.y)
 }
 
 #[cfg(target_os = "linux")]
-pub fn get_img_pos() {
-    info!("not surport");
+mod os_tool {
+    pub fn get_img_pos() {
+        info!("not surport");
+    }
 }
+
+pub use os_tool::*;
 
 #[derive(Debug)]
 struct Area {
@@ -29,7 +36,7 @@ struct Area {
     mouse_pos: (i32, i32),
 }
 
-fn get_img(x: i32, y: i32) -> (Image, (i32, i32)) {
+pub fn get_img(x: i32, y: i32) -> (Image, (i32, i32)) {
     let display = DisplayInfo::from_point(x, y).unwrap();
     let area = compute_img_area(&display, [x, y]);
     let screen = Screen::new(&display);
