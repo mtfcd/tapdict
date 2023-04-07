@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
 import { getCurrent, LogicalSize, appWindow } from "@tauri-apps/api/window";
+import { open } from '@tauri-apps/api/shell';
 import {
   Card,
-    CardBody,
+  CardBody,
   Flex,
   Spacer,
   Heading,
@@ -56,8 +57,7 @@ function parseEntry(text: string = ''): any {
     .replace(/(?:\{it\})([\w\s.,:+-]+)(?:\{\/it\})/g, (_, text) => `<em>${text}</em>`)
     .replace(/(?:\{)(\/)?(inf|sup)(\})/g, (_, slash, tag) =>
       `<${slash || ''}${tag === 'sup' ? 'sup' : 'sub'}>`
-    )
-  ;
+    );
 }
 
 // function parseCaption(text: string = '') {
@@ -79,12 +79,12 @@ function App() {
   const cardRef = useRef<HTMLInputElement | null>(null);
   const [def, setDef] = useState<Definition | null>(null);
   const parseAndSetDef = (payload: string) => {
-        let new_def = parseDef(payload);
-        if (new_def.meta) {
-          const hw = new_def.meta["app-shortdef"].hw.split(/:/)[0];
-          new_def.meta["app-shortdef"].hw = hw;
-          setDef(new_def);
-        }
+    let new_def = parseDef(payload);
+    if (new_def.meta) {
+      const hw = new_def.meta["app-shortdef"].hw.split(/:/)[0];
+      new_def.meta["app-shortdef"].hw = hw;
+      setDef(new_def);
+    }
   }
   const [word, setWord] = useState<string>("");
 
@@ -120,73 +120,77 @@ function App() {
   return (
     <Card maxW="md" ref={cardRef}>
       <CardBody>
-          <Flex flex="1" gap="4" alignItems="center">
-            <InputGroup size="sm">
-              <Input
-                placeholder={word}
-                onChange={handleInputChange}
-                type="search"
-                value={word}
+        <Flex flex="1" gap="4" alignItems="center">
+          <InputGroup size="sm">
+            <Input
+              placeholder={word}
+              onChange={handleInputChange}
+              type="search"
+              value={word}
+            />
+            <InputRightElement width="2.5rem">
+              <IconButton
+                h="1.75rem"
+                size="sm"
+                onClick={() => {
+                  lookup();
+                }}
+                variant="ghost"
+                colorScheme="gray"
+                aria-label="See menu"
+                icon={<BiSearch />}
               />
-              <InputRightElement width="2.5rem">
+            </InputRightElement>
+          </InputGroup>
+          <Spacer />
+          <Flex>
+            {def ?
+              <Tooltip label="open detail in browser">
                 <IconButton
-                  h="1.75rem"
-                  size="sm"
-                  onClick={() => {
-                    lookup();
-                  }}
                   variant="ghost"
                   colorScheme="gray"
                   aria-label="See menu"
-                  icon={<BiSearch />}
+                  onClick={() => {
+                    open(`https://www.merriam-webster.com/dictionary/${word}`)
+                  }}
+                  icon={<MdOpenInBrowser />}
                 />
-              </InputRightElement>
-            </InputGroup>
-            <Spacer />
-          <Flex>
-            <Tooltip label="open detail in browser">
-            <IconButton
-              variant="ghost"
-              colorScheme="gray"
-              aria-label="See menu"
-              onClick={() => {
-                console.log("open in browser");
-              }}
-              icon={<MdOpenInBrowser />}
-            />
-            </Tooltip>
-            <Tooltip label="add to note">
-            <IconButton
-              variant="ghost"
-              colorScheme="gray"
-              aria-label="See menu"
-              onClick={() => {
-                console.log("add to note");
-              }}
-              icon={<BsClipboardPlus />}
-            />
-            </Tooltip>
+              </Tooltip> : null
+            }
+            {/*
+              <Tooltip label="add to note">
+                <IconButton
+                  variant="ghost"
+                  colorScheme="gray"
+                  aria-label="See menu"
+                  onClick={() => {
+                    console.log("add to note");
+                  }}
+                  icon={<BsClipboardPlus />}
+                />
+              </Tooltip>
+              */}
           </Flex>
-          </Flex>
-              <Button borderRadius="full" flex="1" variant="ghost" leftIcon={<AiOutlineSound />} onClick={() => {
-                const mp3 = def?.hwi?.prs[0]?.sound?.audio;
-                if (mp3) {
-                  let subDir = mp3[0];
-                  if (mp3.startsWith("bix")) {
-                    subDir = "bix"
-                  } else if (mp3.startsWith("gg")) {
-                    subDir = "gg"
-                  } else if (mp3.startsWith("_")) {
-                    subDir = "number"
-                  }
-                  const format = "mp3";
-                  const mp3Url = `https://media.merriam-webster.com/audio/prons/en/us/${format}/${subDir}/${mp3}.${format}`
-                  console.log(mp3Url);
-                  new Audio(mp3Url).play();
-                }
-              }}>
-                {def?.hwi?.prs[0]?.ipa}
-              </Button>
+        </Flex>
+        <Button borderRadius="full" flex="1" variant="ghost" leftIcon={<AiOutlineSound />} onClick={() => {
+          const mp3 = def?.hwi?.prs[0]?.sound?.audio;
+          if (mp3) {
+            let subDir = mp3[0];
+            if (mp3.startsWith("bix")) {
+              subDir = "bix"
+            } else if (mp3.startsWith("gg")) {
+              subDir = "gg"
+            } else if (mp3.startsWith("_")) {
+              subDir = "number"
+            }
+            const format = "mp3";
+            const mp3Url = `https://media.merriam-webster.com/audio/prons/en/us/${format}/${subDir}/${mp3}.${format}`
+            console.log(mp3Url);
+            new Audio(mp3Url).play();
+          }
+        }}>
+          {def?.hwi?.prs[0]?.ipa}
+        </Button>
         <Heading size="xs">{def?.meta && def.meta["app-shortdef"]?.fl}</Heading>
         <OrderedList>
           {def?.meta &&
