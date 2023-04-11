@@ -1,4 +1,4 @@
-use crate::utils::{ocr, os_utils, word};
+use crate::utils::{ocr, os_utils};
 
 pub fn get_word() -> Option<String> {
     let (img, pos) = os_utils::get_img_pos();
@@ -11,23 +11,6 @@ pub fn get_word() -> Option<String> {
 
     let word = word_res.unwrap();
     Some(word)
-}
-
-pub async fn get_def() -> Option<String> {
-    let word = get_word();
-    word.as_ref()?;
-
-    let word = word.unwrap();
-    info!("get word: {}", &word);
-    let def_res = word::lookup(&word).await;
-    if let Err(e) = &def_res {
-        error!("lookup error: {}", e);
-        return None;
-    }
-
-    let def = def_res.unwrap();
-    info!("get def");
-    Some(def)
 }
 
 #[test]

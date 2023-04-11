@@ -7,18 +7,29 @@
 extern crate log;
 #[macro_use]
 extern crate lazy_static;
+#[macro_use]
+extern crate sqlx;
 
-use tauri::{AppHandle, GlobalShortcutManager, Manager};
-use tauri::{CustomMenuItem, SystemTray, SystemTrayEvent, SystemTrayMenu};
+use sqlx::{Connection, SqliteConnection};
+use tauri::{
+    async_runtime::Mutex, AppHandle, CustomMenuItem, GlobalShortcutManager, Manager, State,
+    SystemTray, SystemTrayEvent, SystemTrayMenu,
+};
 use tauri_plugin_log::LogTarget;
-use utils::word;
 
 mod logic;
 mod utils;
+use utils::dict;
+
+struct Db {
+    connection: Mutex<Option<SqliteConnection>>,
+}
 
 #[tauri::command]
-async fn lookup(word: String) -> Result<String, String> {
-    match word::lookup(&word).await {
+async fn lookup(word: String, db: State<'_, Db>) -> Result<String, String> {
+    let mut g = db.connection.lock().await;
+    let conn = g.as_mut();
+    match dict::lookup(&word, conn).await {
         Ok(res) => Ok(res),
         Err(e) => Err(e.to_string()),
     }
@@ -26,15 +37,28 @@ async fn lookup(word: String) -> Result<String, String> {
 
 fn handle_short_cut(app: AppHandle) {
     tauri::async_runtime::spawn(async move {
-        let def_res = logic::get_def().await;
-        if def_res.is_none() {
+        let word = logic::get_word();
+        if word.is_none() {
             info!("no word");
             return;
         }
+        let word = word.unwrap();
+        info!("get word: {}", &word);
 
-        let def = def_res.unwrap();
-        lookup_window_visibility(&app);
+        let db = app.state::<Db>();
+        let def = match dict::lookup(&word, db.connection.lock().await.as_mut()).await {
+            Ok(res) => res,
+            Err(e) => {
+                error!("get def: {}", e);
+                return;
+            }
+        };
         let win = app.get_window("lookup").unwrap();
+        win.show().unwrap();
+        app.tray_handle()
+            .get_item("hide")
+            .set_title("Hide Lookup")
+            .unwrap();
         win.emit("showDef", def)
             .unwrap_or_else(|e| println!("emmit error {}", e));
     });
@@ -79,6 +103,9 @@ fn build_tray() -> SystemTray {
 
 fn main() {
     tauri::Builder::default()
+        .manage(Db {
+            connection: Default::default(),
+        })
         .plugin(
             tauri_plugin_log::Builder::default()
                 .targets([LogTarget::LogDir, LogTarget::Stdout, LogTarget::Webview])
@@ -93,6 +120,14 @@ fn main() {
                     handle_short_cut(app_handle.clone());
                 })
                 .unwrap();
+            tauri::async_runtime::block_on(async {
+                let db = app.state::<Db>();
+                *db.connection.lock().await = Some(
+                    SqliteConnection::connect("sqlite://./resources/stardict.db")
+                        .await
+                        .unwrap(),
+                );
+            });
             Ok(())
         })
         .system_tray(build_tray())

@@ -1,6 +1,6 @@
 [package]
 name = "tapdict"
-version = "0.3.0"
+version = "0.4.0"
 description = "A Tauri App"
 authors = ["you"]
 license = ""
@@ -27,6 +27,7 @@ log = "0.4.17"
 lazy_static = "1.4.0"
 tauri-plugin-log = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "dev", version = "0.1.0" }
 regex = {version = "1.7.3"}
+sqlx = { version = "0.6.3", features = ["sqlite", "runtime-tokio-rustls"] }
 
 [features]
 # by default Tauri runs in production mode

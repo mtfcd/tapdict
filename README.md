@@ -3,7 +3,9 @@ A toy dictionary app build with tauri, opencv and React
 
 
 # Usage
-Hovering mouse on a word and press Ctrl+Alt+c will show a simple definition.
+Hovering mouse on a word and press Ctrl+Shift+c will show a simple definition.
+
+Lcoal dict database come from https://github.com/skywind3000/ECDICT
 
 # Tauri + React + Typescript
 

@@ -18,28 +18,19 @@ import {
   Input,
 } from "@chakra-ui/react";
 import { BiSearch } from "react-icons/bi";
-import { BsClipboardPlus } from "react-icons/bs";
+// import { BsClipboardPlus } from "react-icons/bs";
 import { AiOutlineSound } from "react-icons/ai";
 import { MdOpenInBrowser } from "react-icons/md";
 // import "./App.css";
 
 type Definition = {
-  meta: {
-    ["app-shortdef"]: {
-      hw: string;
-      fl: string;
-      def: string[];
-    };
-  };
-  hwi: {
-    hw: string;
-    prs: {
-      ipa: string;
-      sound: {
-        audio: string;
-      };
-    }[];
-  };
+  hw: string,
+  fl: string,
+  def: string[],
+  prs: {
+    ipa: string
+    audio: string,
+  }[]
 };
 
 function parseEntry(text: string = ''): any {
@@ -80,11 +71,7 @@ function App() {
   const [def, setDef] = useState<Definition | null>(null);
   const parseAndSetDef = (payload: string) => {
     let new_def = parseDef(payload);
-    if (new_def.meta) {
-      const hw = new_def.meta["app-shortdef"].hw.split(/:/)[0];
-      new_def.meta["app-shortdef"].hw = hw;
-      setDef(new_def);
-    }
+    setDef(new_def);
   }
   const [word, setWord] = useState<string>("");
 
@@ -93,6 +80,7 @@ function App() {
   }
   async function lookup() {
     const res = await invoke("lookup", { word });
+    console.log(res);
     parseAndSetDef(res as string)
   }
 
@@ -102,7 +90,7 @@ function App() {
       let height = cardRef.current.offsetHeight;
       getCurrent().setSize(new LogicalSize(width, height));
     }
-    const hw = def?.meta && def.meta["app-shortdef"]?.hw;
+    const hw = def?.hw;
     if (hw) {
       setWord(hw)
     }
@@ -173,7 +161,7 @@ function App() {
           </Flex>
         </Flex>
         <Button borderRadius="full" flex="1" variant="ghost" leftIcon={<AiOutlineSound />} onClick={() => {
-          const mp3 = def?.hwi?.prs[0]?.sound?.audio;
+          const mp3 = def?.prs[0]?.audio;
           if (mp3) {
             let subDir = mp3[0];
             if (mp3.startsWith("bix")) {
@@ -189,12 +177,11 @@ function App() {
             new Audio(mp3Url).play();
           }
         }}>
-          {def?.hwi?.prs[0]?.ipa}
+          {def?.prs[0]?.ipa}
         </Button>
-        <Heading size="xs">{def?.meta && def.meta["app-shortdef"]?.fl}</Heading>
+        {/* <Heading size="xs">{def?.meta && def.meta["app-shortdef"]?.fl}</Heading> */}
         <OrderedList>
-          {def?.meta &&
-            def?.meta["app-shortdef"]?.def?.map((d, idx) => (
+          {def?.def.map((d, idx) => (
               <ListItem key={idx} dangerouslySetInnerHTML={{ __html: parseEntry(d) }}></ListItem>
             ))}
         </OrderedList>
