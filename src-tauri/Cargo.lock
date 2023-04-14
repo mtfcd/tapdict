@@ -1768,6 +1768,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "mouse_position"
+version = "0.1.3"
+source = "git+https://github.com/mtfcd/mouse_position#40586628508dda740fcd6361910edd1d5c6a6c6a"
+dependencies = [
+ "core-graphics",
+ "winapi",
+ "x11-dl",
+]
+
+[[package]]
 name = "native-tls"
 version = "0.2.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3193,6 +3203,7 @@ dependencies = [
  "anyhow",
  "lazy_static",
  "log",
+ "mouse_position",
  "regex",
  "reqwest",
  "screenshots",
@@ -3204,7 +3215,6 @@ dependencies = [
  "tauri-plugin-log",
  "tauri-runtime",
  "tesseract",
- "winapi",
 ]
 
 [[package]]

@@ -3,29 +3,15 @@ use screenshots::{DisplayInfo, Image, Screen};
 const IMG_WIDTH: i32 = 200;
 const IMG_HEIGHT: i32 = 100;
 
-#[cfg(target_os = "windows")]
-mod os_tool {
-    use super::{get_img, Image};
-    use winapi::shared::windef::POINT;
-    use winapi::um::winuser::GetCursorPos;
-
-    pub fn get_img_pos() -> (Image, (i32, i32)) {
-        let mut point: POINT = POINT { x: 0, y: 0 };
-        unsafe {
-            GetCursorPos(&mut point);
-        }
-        get_img(point.x, point.y)
-    }
+pub fn get_img_pos() -> (Image, (i32, i32)) {
+    use mouse_position::mouse_position::Mouse;
+    let position = Mouse::get_mouse_position();
+    let (x, y) = match position {
+        Mouse::Position { x, y } => (x, y),
+        Mouse::Error => panic!("get mouse pos error!"),
+    };
+    get_img(x, y)
 }
-
-#[cfg(target_os = "linux")]
-mod os_tool {
-    pub fn get_img_pos() {
-        info!("not surport");
-    }
-}
-
-pub use os_tool::*;
 
 #[derive(Debug)]
 struct Area {
