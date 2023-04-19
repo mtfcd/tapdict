@@ -1,13 +1,14 @@
 use anyhow::{Error, Result};
 use regex::Regex;
-use std::path::Path;
+use std::sync::{Arc, Mutex};
 use tesseract::Tesseract;
 
-pub fn get_word(buf: Vec<u8>, pos: (i32, i32)) -> Result<String> {
-    lazy_static! {
-        static ref TESSDATA_DIR: &'static Path = Path::new("./resources");
-    }
-    let mut tes = Tesseract::new(TESSDATA_DIR.to_str(), Some("eng"))
+lazy_static! {
+    pub static ref TESSDATA_DIR: Arc<Mutex<Option<String>>> = Arc::new(Mutex::new(None));
+}
+
+pub async fn get_word(buf: Vec<u8>, pos: (i32, i32)) -> Result<String> {
+    let mut tes = Tesseract::new(TESSDATA_DIR.lock().unwrap().as_deref(), Some("eng"))
         .unwrap()
         .set_image_from_mem(&buf)
         .unwrap();
@@ -61,7 +62,7 @@ fn find_word_in_pos(tsv: &str, pos: (i32, i32)) -> Result<String> {
 #[test]
 fn ocr_large_word() {
     let frame = include_bytes!("screen.png");
-    let word = get_word(frame.to_vec(), (100, 50)).unwrap();
+    let word = get_word(frame.to_vec(), (100, 50)).await.unwrap();
     assert_eq!("Community", word);
 }
 

@@ -37,7 +37,7 @@ async fn lookup(word: String, db: State<'_, Db>) -> Result<String, String> {
 
 fn handle_short_cut(app: AppHandle) {
     tauri::async_runtime::spawn(async move {
-        let word = logic::get_word();
+        let word = logic::get_word().await;
         if word.is_none() {
             info!("no word");
             return;
@@ -120,13 +120,21 @@ fn main() {
                     handle_short_cut(app_handle.clone());
                 })
                 .unwrap();
+
+            let lang_dir = app.path_resolver().resolve_resource("resources").unwrap();
+            *utils::ocr::TESSDATA_DIR.lock().unwrap() =
+                Some(lang_dir.to_string_lossy().into_owned());
+
+            let db_path = app
+                .path_resolver()
+                .resolve_resource("resources/stardict.db")
+                .unwrap();
+            println!("data path: {}", db_path.display());
+            let db_url = format!("sqlite://{}", db_path.to_str().unwrap());
             tauri::async_runtime::block_on(async {
                 let db = app.state::<Db>();
-                *db.connection.lock().await = Some(
-                    SqliteConnection::connect("sqlite://./resources/stardict.db")
-                        .await
-                        .unwrap(),
-                );
+                *db.connection.lock().await =
+                    Some(SqliteConnection::connect(&db_url).await.unwrap());
             });
             Ok(())
         })
