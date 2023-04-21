@@ -20,7 +20,7 @@ pub async fn get_word(buf: Vec<u8>, pos: (i32, i32)) -> Result<String> {
 fn extract_single_word(line_part: &str, x: i32, width: i32) -> &str {
     debug!("extract word: {}, {}, {}", line_part, x, width);
     lazy_static! {
-        static ref PAT: Regex = Regex::new(r"\W").unwrap();
+        static ref PAT: Regex = Regex::new(r"[\W0-9_]").unwrap();
     }
     if !PAT.is_match(line_part) {
         return line_part;
