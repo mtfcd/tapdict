@@ -35,6 +35,11 @@ async fn lookup(word: String, db: State<'_, Db>) -> Result<String, String> {
     }
 }
 
+#[tauri::command]
+fn close_window(app: AppHandle) {
+    hide_window(&app)
+}
+
 fn handle_short_cut(app: AppHandle) {
     tauri::async_runtime::spawn(async move {
         let word = logic::get_word().await;
@@ -53,18 +58,30 @@ fn handle_short_cut(app: AppHandle) {
                 return;
             }
         };
-        let win = app.get_window("lookup").unwrap();
-        win.show().unwrap();
-        app.tray_handle()
-            .get_item("hide")
-            .set_title("Hide Lookup")
-            .unwrap();
-        win.emit("showDef", def)
+        show_window(&app);
+        app.get_window("lookup")
+            .unwrap()
+            .emit("showDef", def)
             .unwrap_or_else(|e| println!("emmit error {}", e));
     });
 }
 
-fn lookup_window_visibility(app: &AppHandle) {
+fn hide_window(app: &AppHandle) {
+    app.get_window("lookup").unwrap().hide().unwrap();
+    app.tray_handle()
+        .get_item("hide")
+        .set_title("Show Lookup")
+        .unwrap();
+}
+
+fn show_window(app: &AppHandle) {
+    let lookup_window = app.get_window("lookup").unwrap();
+    lookup_window.show().unwrap();
+    let item_handle = app.tray_handle().get_item("hide");
+    item_handle.set_title("Hide Lookup").unwrap();
+}
+
+fn toggle_window_visibility(app: &AppHandle) {
     let item_handle = app.tray_handle().get_item("hide");
     let lookup_window = app.get_window("lookup").unwrap();
     if lookup_window.is_visible().unwrap() {
@@ -83,12 +100,12 @@ fn handle_tray_event(app: &AppHandle, event: SystemTrayEvent) {
                 std::process::exit(0);
             }
             "hide" => {
-                lookup_window_visibility(app);
+                toggle_window_visibility(app);
             }
             _ => {}
         },
         SystemTrayEvent::DoubleClick { .. } => {
-            lookup_window_visibility(app);
+            toggle_window_visibility(app);
         }
         _ => {}
     }
@@ -149,7 +166,7 @@ fn main() {
                 item_handle.set_title("Show Lookup").unwrap();
             }
         })
-        .invoke_handler(tauri::generate_handler![lookup])
+        .invoke_handler(tauri::generate_handler![lookup, close_window])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

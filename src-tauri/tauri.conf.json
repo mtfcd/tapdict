@@ -26,7 +26,11 @@
       },
       "window": {
         "setSize": true,
-        "setAlwaysOnTop": true
+        "setAlwaysOnTop": true,
+        "close": true,
+        "hide": true,
+        "startDragging": true,
+        "show": true
       },
       "fs": {
         "scope": [
@@ -79,11 +83,12 @@
     "windows": [
       {
         "fullscreen": false,
-        "resizable": false,
+        "resizable": true,
         "title": "lookup",
         "label": "lookup",
         "width": 448,
-        "height": 400,
+        "height": 240,
+        "decorations": false,
         "alwaysOnTop": true
       }
     ]

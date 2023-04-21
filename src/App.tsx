@@ -1,13 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
 import { getCurrent, LogicalSize, appWindow } from "@tauri-apps/api/window";
-import { open } from '@tauri-apps/api/shell';
+import { open } from "@tauri-apps/api/shell";
 import {
   Card,
+  CloseButton,
   CardBody,
   Flex,
   Spacer,
-  Heading,
   IconButton,
   Button,
   OrderedList,
@@ -21,33 +21,36 @@ import { BiSearch } from "react-icons/bi";
 // import { BsClipboardPlus } from "react-icons/bs";
 import { AiOutlineSound } from "react-icons/ai";
 import { MdOpenInBrowser } from "react-icons/md";
-// import "./App.css";
 
 type Definition = {
-  hw: string,
-  fl: string,
-  def: string[],
+  hw: string;
+  fl: string;
+  def: string[];
   prs: {
-    ipa: string
-    audio: string,
-  }[]
+    ipa: string;
+    audio: string;
+  }[];
 };
 
-function parseEntry(text: string = ''): any {
-  if (Array.isArray(text))
-    return parseEntry(text[0]?.[0]?.[1] || '');
+function parseEntry(text: string = ""): any {
+  if (Array.isArray(text)) return parseEntry(text[0]?.[0]?.[1] || "");
 
   return text
-    .replace(/^\{bc\}/, '')
-    .replace(/( )?\{bc\}/g, ': ')
-    .replace(/( )?\{dx\}/g, '<br /><small>')
-    .replace(/( )?\{\/dx\}/g, '</small>')
-    .replace(/(?:\{(?:sx|dxt|a_link|d_link|et_link|i_link|mat)\|)([\w\s.,:+-]+)(?:[|])?([\w\s.,:+-]+)?(?:\|)?(?:\d+)?\}/g, (_, text, href) =>
-      `<a href="?q=${href || text}">${text}</a>`
+    .replace(/^\{bc\}/, "")
+    .replace(/( )?\{bc\}/g, ": ")
+    .replace(/( )?\{dx\}/g, "<br /><small>")
+    .replace(/( )?\{\/dx\}/g, "</small>")
+    .replace(
+      /(?:\{(?:sx|dxt|a_link|d_link|et_link|i_link|mat)\|)([\w\s.,:+-]+)(?:[|])?([\w\s.,:+-]+)?(?:\|)?(?:\d+)?\}/g,
+      (_, text, href) => `<a href="?q=${href || text}">${text}</a>`
     )
-    .replace(/(?:\{it\})([\w\s.,:+-]+)(?:\{\/it\})/g, (_, text) => `<em>${text}</em>`)
-    .replace(/(?:\{)(\/)?(inf|sup)(\})/g, (_, slash, tag) =>
-      `<${slash || ''}${tag === 'sup' ? 'sup' : 'sub'}>`
+    .replace(
+      /(?:\{it\})([\w\s.,:+-]+)(?:\{\/it\})/g,
+      (_, text) => `<em>${text}</em>`
+    )
+    .replace(
+      /(?:\{)(\/)?(inf|sup)(\})/g,
+      (_, slash, tag) => `<${slash || ""}${tag === "sup" ? "sup" : "sub"}>`
     );
 }
 
@@ -72,27 +75,35 @@ function App() {
   const parseAndSetDef = (payload: string) => {
     let new_def = parseDef(payload);
     setDef(new_def);
-  }
+  };
   const [word, setWord] = useState<string>("");
 
   function handleInputChange(e: any) {
     setWord(e.target.value);
   }
+
   async function lookup() {
     const res = await invoke("lookup", { word });
     console.log(res);
-    parseAndSetDef(res as string)
+    parseAndSetDef(res as string);
+  }
+
+  function closeWindow() {
+    invoke("close_window");
   }
 
   useEffect(() => {
     if (cardRef && cardRef.current) {
       let width = cardRef.current.offsetWidth;
       let height = cardRef.current.offsetHeight;
+      if (height > 400) {
+        height = 400;
+      }
       getCurrent().setSize(new LogicalSize(width, height));
     }
     const hw = def?.hw;
     if (hw) {
-      setWord(hw)
+      setWord(hw);
     }
   }, [def]);
 
@@ -100,14 +111,14 @@ function App() {
     const unlisten = appWindow.listen<string>("showDef", (event) => {
       a = a + 1;
       if (event.payload) {
-        parseAndSetDef(event.payload)
+        parseAndSetDef(event.payload);
       }
     });
   }, []);
 
   return (
-    <Card maxW="md" ref={cardRef}>
-      <CardBody>
+    <Card data-tauri-drag-region maxW="md" ref={cardRef}>
+      <CardBody data-tauri-drag-region>
         <Flex flex="1" gap="4" alignItems="center">
           <InputGroup size="sm">
             <Input
@@ -131,20 +142,48 @@ function App() {
             </InputRightElement>
           </InputGroup>
           <Spacer />
+          <CloseButton onClick={closeWindow} />
+        </Flex>
+        <Flex minWidth="max-content">
+          <Button
+            borderRadius="full"
+            variant="ghost"
+            leftIcon={<AiOutlineSound />}
+            onClick={() => {
+              const mp3 = def?.prs[0]?.audio;
+              if (mp3) {
+                let subDir = mp3[0];
+                if (mp3.startsWith("bix")) {
+                  subDir = "bix";
+                } else if (mp3.startsWith("gg")) {
+                  subDir = "gg";
+                } else if (mp3.startsWith("_")) {
+                  subDir = "number";
+                }
+                const format = "mp3";
+                const mp3Url = `https://media.merriam-webster.com/audio/prons/en/us/${format}/${subDir}/${mp3}.${format}`;
+                console.log(mp3Url);
+                new Audio(mp3Url).play();
+              }
+            }}
+          >
+            {def?.prs[0]?.ipa}
+          </Button>
+          <Spacer />
           <Flex>
-            {def ?
+            {def ? (
               <Tooltip label="open detail in browser">
                 <IconButton
                   variant="ghost"
                   colorScheme="gray"
                   aria-label="See menu"
                   onClick={() => {
-                    open(`https://www.merriam-webster.com/dictionary/${word}`)
+                    open(`https://www.merriam-webster.com/dictionary/${word}`);
                   }}
                   icon={<MdOpenInBrowser />}
                 />
-              </Tooltip> : null
-            }
+              </Tooltip>
+            ) : null}
             {/*
               <Tooltip label="add to note">
                 <IconButton
@@ -160,30 +199,14 @@ function App() {
               */}
           </Flex>
         </Flex>
-        <Button borderRadius="full" flex="1" variant="ghost" leftIcon={<AiOutlineSound />} onClick={() => {
-          const mp3 = def?.prs[0]?.audio;
-          if (mp3) {
-            let subDir = mp3[0];
-            if (mp3.startsWith("bix")) {
-              subDir = "bix"
-            } else if (mp3.startsWith("gg")) {
-              subDir = "gg"
-            } else if (mp3.startsWith("_")) {
-              subDir = "number"
-            }
-            const format = "mp3";
-            const mp3Url = `https://media.merriam-webster.com/audio/prons/en/us/${format}/${subDir}/${mp3}.${format}`
-            console.log(mp3Url);
-            new Audio(mp3Url).play();
-          }
-        }}>
-          {def?.prs[0]?.ipa}
-        </Button>
         {/* <Heading size="xs">{def?.meta && def.meta["app-shortdef"]?.fl}</Heading> */}
         <OrderedList>
           {def?.def.map((d, idx) => (
-              <ListItem key={idx} dangerouslySetInnerHTML={{ __html: parseEntry(d) }}></ListItem>
-            ))}
+            <ListItem
+              key={idx}
+              dangerouslySetInnerHTML={{ __html: parseEntry(d) }}
+            ></ListItem>
+          ))}
         </OrderedList>
       </CardBody>
     </Card>
