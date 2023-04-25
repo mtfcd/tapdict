@@ -39,6 +39,7 @@ fn extract_single_word(line_part: &str, x: i32, width: i32) -> &str {
 
 fn find_word_in_pos(tsv: &str, pos: (i32, i32)) -> Result<String> {
     for line in tsv.lines() {
+        debug!("tsv line: {line}");
         let line_parts: Vec<&str> = line.split('\t').collect();
         if line_parts.len() != 12 {
             return Err(Error::msg("tsv err"));

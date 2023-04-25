@@ -29,10 +29,14 @@ pub fn get_img(x: i32, y: i32) -> (Image, (i32, i32)) {
     let image = screen
         .capture_area(area.left, area.top, area.width, area.height) // scale_factr
         .unwrap();
-    // {
-    // use std::fs;
-    // fs::write("screen.png", image.buffer()).unwrap();
-    // }
+
+    #[cfg(debug_assertions)]
+    {
+        use std::fs;
+        println!("display: {:?}", screen);
+        // let image = screen.capture().unwrap();
+        fs::write("screen.png", image.buffer()).unwrap();
+    }
     return (image, area.mouse_pos);
 }
 
