@@ -13,12 +13,17 @@
 
 通过 ocr 识别屏幕上的单词，查询一个内置的字典。
 ocr 用的是 tesseract，内置字典数据来自: https://github.com/skywind3000/ECDICT
+内置数据查不到的会去查 [merriam-webster 的 api 接口](https://www.dictionaryapi.com/)。
 
 ## 构建
 
 参考[tauri](https://tauri.app/)官网安装依赖。
 
 然后安装项目依赖，主要就是 tesseract 可以参考[tesseract-sys](https://crates.io/crates/tesseract-sys/)库的说明。
+
+需要申请一个 merriam-webster 的 api key 放到 src-tauri/src/utils 下面。
+
+从https://github.com/skywind3000/ECDICT下载stardict版的sqlite的数据库文件放到src-tauri/resources下。
 
 ### windows
 
