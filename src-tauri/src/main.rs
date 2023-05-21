@@ -10,7 +10,7 @@ extern crate lazy_static;
 #[macro_use]
 extern crate sqlx;
 
-use sqlx::{Connection, SqliteConnection};
+use sqlx::{sqlite::SqliteConnectOptions, ConnectOptions, SqliteConnection};
 use tauri::{
     async_runtime::Mutex, AppHandle, CustomMenuItem, GlobalShortcutManager, Manager, State,
     SystemTray, SystemTrayEvent, SystemTrayMenu,
@@ -139,19 +139,26 @@ fn main() {
                 .unwrap();
 
             let lang_dir = app.path_resolver().resolve_resource("resources").unwrap();
-            *utils::ocr::TESSDATA_DIR.lock().unwrap() =
-                Some(lang_dir.to_string_lossy().into_owned());
+
+            let mut lang_dir = lang_dir.to_string_lossy().to_string();
+            if cfg!(target_os = "windows") {
+                lang_dir = lang_dir.strip_prefix(r"\\?\").unwrap().to_string();
+            }
+            *utils::ocr::TESSDATA_DIR.lock().unwrap() = Some(lang_dir);
 
             let db_path = app
                 .path_resolver()
                 .resolve_resource("resources/stardict.db")
                 .unwrap();
-            println!("data path: {}", db_path.display());
-            let db_url = format!("sqlite://{}", db_path.to_str().unwrap());
+            println!("data path: {:?}", db_path.to_str());
             tauri::async_runtime::block_on(async {
+                let conn = SqliteConnectOptions::new()
+                    .filename(db_path)
+                    .connect()
+                    .await
+                    .unwrap();
                 let db = app.state::<Db>();
-                *db.connection.lock().await =
-                    Some(SqliteConnection::connect(&db_url).await.unwrap());
+                *db.connection.lock().await = Some(conn);
             });
             Ok(())
         })

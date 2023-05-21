@@ -63,8 +63,8 @@
         "signingIdentity": null
       },
       "resources": [
-        "resources/eng.traineddata",
-        "resources/stardict.db"
+        "./resources/eng.traineddata",
+        "./resources/stardict.db"
       ],
       "shortDescription": "",
       "targets": "all",
@@ -88,7 +88,6 @@
         "label": "lookup",
         "width": 448,
         "height": 240,
-        "decorations": false,
         "alwaysOnTop": true
       }
     ]
