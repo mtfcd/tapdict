@@ -23,6 +23,14 @@ struct Area {
 }
 
 pub fn get_img(x: i32, y: i32) -> (Image, (i32, i32)) {
+    dbg!(x, y);
+    match DisplayInfo::from_point(x, y) {
+        Ok(_) => {}
+        Err(e) => {
+            dbg!(e);
+        }
+    };
+    dbg!(DisplayInfo::all().unwrap());
     let display = DisplayInfo::from_point(x, y).unwrap();
     let area = compute_img_area(&display, [x, y]);
     let screen = Screen::new(&display);

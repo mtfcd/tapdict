@@ -27,7 +27,7 @@ lazy_static = "1.4.0"
 tauri-plugin-log = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1" }
 regex = {version = "1.7.3"}
 sqlx = { version = "0.6.3", features = ["sqlite", "runtime-tokio-rustls"] }
-mouse_position = { git = "https://github.com/mtfcd/mouse_position", version = "0.1.3" }
+mouse_position = { path = "../../../mouse_position" }
 
 [features]
 # by default Tauri runs in production mode

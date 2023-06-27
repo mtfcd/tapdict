@@ -141,34 +141,34 @@ function App() {
               />
             </InputRightElement>
           </InputGroup>
-          <Spacer />
-          <CloseButton onClick={closeWindow} />
         </Flex>
         <Flex minWidth="max-content">
-          <Button
-            borderRadius="full"
-            variant="ghost"
-            leftIcon={<AiOutlineSound />}
-            onClick={() => {
-              const mp3 = def?.prs[0]?.audio;
-              if (mp3) {
-                let subDir = mp3[0];
-                if (mp3.startsWith("bix")) {
-                  subDir = "bix";
-                } else if (mp3.startsWith("gg")) {
-                  subDir = "gg";
-                } else if (mp3.startsWith("_")) {
-                  subDir = "number";
+          {def?.prs[0] ? (
+            <Button
+              borderRadius="full"
+              variant="ghost"
+              leftIcon={<AiOutlineSound />}
+              onClick={() => {
+                const mp3 = def?.prs[0]?.audio;
+                if (mp3) {
+                  let subDir = mp3[0];
+                  if (mp3.startsWith("bix")) {
+                    subDir = "bix";
+                  } else if (mp3.startsWith("gg")) {
+                    subDir = "gg";
+                  } else if (mp3.startsWith("_")) {
+                    subDir = "number";
+                  }
+                  const format = "mp3";
+                  const mp3Url = `https://media.merriam-webster.com/audio/prons/en/us/${format}/${subDir}/${mp3}.${format}`;
+                  console.log(mp3Url);
+                  new Audio(mp3Url).play();
                 }
-                const format = "mp3";
-                const mp3Url = `https://media.merriam-webster.com/audio/prons/en/us/${format}/${subDir}/${mp3}.${format}`;
-                console.log(mp3Url);
-                new Audio(mp3Url).play();
-              }
-            }}
-          >
-            {def?.prs[0]?.ipa}
-          </Button>
+              }}
+            >
+              {def?.prs[0]?.ipa}
+            </Button>
+          ) : null}
           <Spacer />
           <Flex>
             {def ? (
@@ -197,6 +197,7 @@ function App() {
                 />
               </Tooltip>
               */}
+            <Spacer />
           </Flex>
         </Flex>
         {/* <Heading size="xs">{def?.meta && def.meta["app-shortdef"]?.fl}</Heading> */}

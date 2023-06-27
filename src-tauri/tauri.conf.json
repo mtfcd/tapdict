@@ -88,6 +88,7 @@
         "label": "lookup",
         "width": 448,
         "height": 240,
+        "maximizable": false,
         "alwaysOnTop": true
       }
     ]
