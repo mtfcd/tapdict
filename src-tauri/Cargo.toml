@@ -21,13 +21,13 @@ tauri-runtime = "0.13"
 screenshots = {git = "http://github.com/mtfcd/screenshots-rs" , branch="macos-hide-mouse"}
 reqwest = "0.11.14"
 anyhow = "1.0.69"
-tesseract = "0.14.0"
+tesseract = "0.15.0"
 log = "0.4.17"
 lazy_static = "1.4.0"
 tauri-plugin-log = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1" }
 regex = {version = "1.7.3"}
 sqlx = { version = "0.6.3", features = ["sqlite", "runtime-tokio-rustls"] }
-mouse_position = { path = "../../../mouse_position" }
+mouse_position = { git = "https://github.com/mtfcd/mouse_position" }
 
 [features]
 # by default Tauri runs in production mode
