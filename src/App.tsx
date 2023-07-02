@@ -103,10 +103,10 @@ function App() {
     }
   };
 
-  async function lookup() {
+  const lookup = async () => {
     const res = await invoke("lookup", { word });
     parseAndSetDef(res as string);
-  }
+  };
 
   const handlePrsClick = async () => {
     const mp3 = def?.prs[0]?.audio;
@@ -174,6 +174,11 @@ function App() {
             onChange={handleInputChange}
             type="search"
             value={word}
+            onKeyPress={(event) => {
+              if (event.key == "Enter") {
+                lookup();
+              }
+            }}
           />
           <InputRightElement width="2.5rem">
             <IconButton
@@ -189,7 +194,7 @@ function App() {
             />
           </InputRightElement>
         </InputGroup>
-        <Tooltip label="expand window">
+        <Tooltip label="expand window" placement="auto-end">
           <IconButton
             variant="ghost"
             colorScheme="gray"
@@ -199,7 +204,7 @@ function App() {
           />
         </Tooltip>
       </Flex>
-      <Flex minWidth="max-content">
+      <Flex flex="1" gap="4" alignItems="center">
         {def?.prs[0] ? (
           <Button
             borderRadius="full"
@@ -211,22 +216,19 @@ function App() {
           </Button>
         ) : null}
         <Spacer />
-        <Flex>
-          {def ? (
-            <Tooltip label="open detail in browser">
-              <IconButton
-                variant="ghost"
-                colorScheme="gray"
-                aria-label="See menu"
-                onClick={() => {
-                  open(`https://www.merriam-webster.com/dictionary/${word}`);
-                }}
-                icon={<MdOpenInBrowser />}
-              />
-            </Tooltip>
-          ) : null}
-          <Spacer />
-        </Flex>
+        {def ? (
+          <Tooltip label="open in browser" placement="auto-end">
+            <IconButton
+              variant="ghost"
+              colorScheme="gray"
+              aria-label="See menu"
+              onClick={() => {
+                open(`https://www.merriam-webster.com/dictionary/${word}`);
+              }}
+              icon={<MdOpenInBrowser />}
+            />
+          </Tooltip>
+        ) : null}
       </Flex>
       <OrderedList>
         {def?.def.map((d, idx) => (

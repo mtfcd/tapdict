@@ -33,7 +33,9 @@
         "show": true
       },
       "fs": {
-        "scope": ["$RESOURCES/*"]
+        "scope": [
+          "$RESOURCES/*"
+        ]
       }
     },
     "bundle": {
@@ -60,7 +62,10 @@
         "providerShortName": null,
         "signingIdentity": null
       },
-      "resources": ["./resources/eng.traineddata", "./resources/stardict.db"],
+      "resources": [
+        "./resources/eng.traineddata",
+        "./resources/stardict.db"
+      ],
       "shortDescription": "",
       "targets": "all",
       "windows": {
@@ -78,7 +83,7 @@
     "windows": [
       {
         "fullscreen": false,
-        "resizable": true,
+        "resizable": false,
         "title": "lookup",
         "label": "lookup",
         "width": 400,
