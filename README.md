@@ -41,5 +41,12 @@ linux 上的依赖文档里说了 ubuntu 和 fedora，arch linux 里就用`pacma
 
 ### mac
 
+需要先安装 tesseract
+
 `brew install tesseract`
-mac 上运行的时候可能会缺以来`libarchive`，还没找到怎么把这个库打包到安装包里，但可以用 brew 安装。
+
+还没找到怎么把这个库打包到安装包里。
+进行了以下尝试：
+
+- 设置 pkg-config 的环境变量`TESSERACT_STATIC`，没有用。
+- 设置了`RUSTFLAGS='-C target-feature=+crt-static'`，没有用。

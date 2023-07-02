@@ -35,5 +35,12 @@ Ubuntu and Fedora are covered in [tesseract-sys](https://crates.io/crates/tesser
 
 ### mac
 
+Need install tesseract first.
+
 `brew install tesseract`
-But when you run the app, it might tell you `libarchive` not found, I haven't found a way to bundlethe library into app. But install it use brew should fix it. There maybe a convinient way in future version of tauri(https://github.com/tauri-apps/tauri/pull/5732)
+
+I haven't found a way to build tesseract statically or bundle the library into app. So you have to install tesseract.
+I tried:
+
+- set pkg-config env variable `TESSERACT_STATIC`, did not work.
+- set rustc env variable `RUSTFLAGS='-C target-feature=+crt-static'`, did not work.
