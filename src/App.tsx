@@ -1,11 +1,9 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, ReactElement } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
 import { getCurrent, LogicalSize, appWindow } from "@tauri-apps/api/window";
 import { open } from "@tauri-apps/api/shell";
 import {
-  Card,
-  CloseButton,
-  CardBody,
+  Container,
   Flex,
   Spacer,
   IconButton,
@@ -18,9 +16,9 @@ import {
   Input,
 } from "@chakra-ui/react";
 import { BiSearch } from "react-icons/bi";
-// import { BsClipboardPlus } from "react-icons/bs";
 import { AiOutlineSound } from "react-icons/ai";
 import { MdOpenInBrowser } from "react-icons/md";
+import { TbArrowsDiagonal2, TbArrowsDiagonalMinimize } from "react-icons/tb";
 
 type Definition = {
   hw: string;
@@ -31,6 +29,7 @@ type Definition = {
     audio: string;
   }[];
 };
+let windowIsLarge = false;
 
 function parseEntry(text: string = ""): any {
   if (Array.isArray(text)) return parseEntry(text[0]?.[0]?.[1] || "");
@@ -73,8 +72,13 @@ function App() {
   const cardRef = useRef<HTMLInputElement | null>(null);
   const [def, setDef] = useState<Definition | null>(null);
   const parseAndSetDef = (payload: string) => {
+    // console.log(payload);
     let new_def = parseDef(payload);
     setDef(new_def);
+    const hw = new_def?.hw;
+    if (hw) {
+      setWord(hw);
+    }
   };
   const [word, setWord] = useState<string>("");
 
@@ -82,14 +86,24 @@ function App() {
     setWord(e.target.value);
   }
 
+  const [sizeButton, setSizeButton] = useState<ReactElement>(
+    <TbArrowsDiagonal2 />
+  );
+  const expandWindow = () => {
+    if (windowIsLarge) {
+      getCurrent().setSize(new LogicalSize(400, 200));
+      windowIsLarge = false;
+      setSizeButton(<TbArrowsDiagonal2 />);
+    } else {
+      getCurrent().setSize(new LogicalSize(500, 500));
+      windowIsLarge = true;
+      setSizeButton(<TbArrowsDiagonalMinimize />);
+    }
+  };
+
   async function lookup() {
     const res = await invoke("lookup", { word });
-    console.log(res);
     parseAndSetDef(res as string);
-  }
-
-  function closeWindow() {
-    invoke("close_window");
   }
 
   useEffect(() => {
@@ -108,7 +122,7 @@ function App() {
   }, [def]);
 
   useEffect(() => {
-    const unlisten = appWindow.listen<string>("showDef", (event) => {
+    appWindow.listen<string>("showDef", (event) => {
       a = a + 1;
       if (event.payload) {
         parseAndSetDef(event.payload);
@@ -117,100 +131,93 @@ function App() {
   }, []);
 
   return (
-    <Card data-tauri-drag-region maxW="md" ref={cardRef}>
-      <CardBody data-tauri-drag-region>
-        <Flex flex="1" gap="4" alignItems="center">
-          <InputGroup size="sm">
-            <Input
-              placeholder={word}
-              onChange={handleInputChange}
-              type="search"
-              value={word}
+    <Container>
+      <Flex flex="1" gap="4" alignItems="center">
+        <InputGroup size="sm">
+          <Input
+            placeholder={word}
+            onChange={handleInputChange}
+            type="search"
+            value={word}
+          />
+          <InputRightElement width="2.5rem">
+            <IconButton
+              h="1.75rem"
+              size="sm"
+              onClick={() => {
+                lookup();
+              }}
+              variant="ghost"
+              colorScheme="gray"
+              aria-label="See menu"
+              icon={<BiSearch />}
             />
-            <InputRightElement width="2.5rem">
+          </InputRightElement>
+        </InputGroup>
+        <Tooltip label="expand window">
+          <IconButton
+            variant="ghost"
+            colorScheme="gray"
+            aria-label="See menu"
+            onClick={expandWindow}
+            icon={sizeButton}
+          />
+        </Tooltip>
+      </Flex>
+      <Flex minWidth="max-content">
+        {def?.prs[0] ? (
+          <Button
+            borderRadius="full"
+            variant="ghost"
+            leftIcon={<AiOutlineSound />}
+            onClick={() => {
+              const mp3 = def?.prs[0]?.audio;
+              if (mp3) {
+                let subDir = mp3[0];
+                if (mp3.startsWith("bix")) {
+                  subDir = "bix";
+                } else if (mp3.startsWith("gg")) {
+                  subDir = "gg";
+                } else if (mp3.startsWith("_")) {
+                  subDir = "number";
+                }
+                const format = "mp3";
+                const mp3Url = `https://media.merriam-webster.com/audio/prons/en/us/${format}/${subDir}/${mp3}.${format}`;
+                // console.log(mp3Url);
+                new Audio(mp3Url).play();
+              }
+            }}
+          >
+            {def?.prs[0]?.ipa}
+          </Button>
+        ) : null}
+        <Spacer />
+        <Flex>
+          {def ? (
+            <Tooltip label="open detail in browser">
               <IconButton
-                h="1.75rem"
-                size="sm"
-                onClick={() => {
-                  lookup();
-                }}
                 variant="ghost"
                 colorScheme="gray"
                 aria-label="See menu"
-                icon={<BiSearch />}
+                onClick={() => {
+                  open(`https://www.merriam-webster.com/dictionary/${word}`);
+                }}
+                icon={<MdOpenInBrowser />}
               />
-            </InputRightElement>
-          </InputGroup>
-        </Flex>
-        <Flex minWidth="max-content">
-          {def?.prs[0] ? (
-            <Button
-              borderRadius="full"
-              variant="ghost"
-              leftIcon={<AiOutlineSound />}
-              onClick={() => {
-                const mp3 = def?.prs[0]?.audio;
-                if (mp3) {
-                  let subDir = mp3[0];
-                  if (mp3.startsWith("bix")) {
-                    subDir = "bix";
-                  } else if (mp3.startsWith("gg")) {
-                    subDir = "gg";
-                  } else if (mp3.startsWith("_")) {
-                    subDir = "number";
-                  }
-                  const format = "mp3";
-                  const mp3Url = `https://media.merriam-webster.com/audio/prons/en/us/${format}/${subDir}/${mp3}.${format}`;
-                  console.log(mp3Url);
-                  new Audio(mp3Url).play();
-                }
-              }}
-            >
-              {def?.prs[0]?.ipa}
-            </Button>
+            </Tooltip>
           ) : null}
           <Spacer />
-          <Flex>
-            {def ? (
-              <Tooltip label="open detail in browser">
-                <IconButton
-                  variant="ghost"
-                  colorScheme="gray"
-                  aria-label="See menu"
-                  onClick={() => {
-                    open(`https://www.merriam-webster.com/dictionary/${word}`);
-                  }}
-                  icon={<MdOpenInBrowser />}
-                />
-              </Tooltip>
-            ) : null}
-            {/*
-              <Tooltip label="add to note">
-                <IconButton
-                  variant="ghost"
-                  colorScheme="gray"
-                  aria-label="See menu"
-                  onClick={() => {
-                    console.log("add to note");
-                  }}
-                  icon={<BsClipboardPlus />}
-                />
-              </Tooltip>
-              */}
-            <Spacer />
-          </Flex>
         </Flex>
-        {/* <Heading size="xs">{def?.meta && def.meta["app-shortdef"]?.fl}</Heading> */}
-        <OrderedList>
-          {def?.def.map((d, idx) => (
-            <ListItem
-              key={idx}
-              dangerouslySetInnerHTML={{ __html: parseEntry(d) }}
-            ></ListItem>
-          ))}
-        </OrderedList>
-      </CardBody>
-    </Card>
+      </Flex>
+      <OrderedList>
+        {def?.def.map((d, idx) => (
+          <ListItem
+            key={idx}
+            dangerouslySetInnerHTML={{ __html: parseEntry(d) }}
+          ></ListItem>
+        ))}
+      </OrderedList>
+    </Container>
   );
 }
 

@@ -1,6 +1,6 @@
 use screenshots::{DisplayInfo, Image, Screen};
 
-const IMG_WIDTH: i32 = 200;
+const IMG_WIDTH: i32 = 300;
 const IMG_HEIGHT: i32 = 100;
 
 pub fn get_img_pos() -> (Image, (i32, i32)) {
