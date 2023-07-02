@@ -26,3 +26,4 @@ dist-ssr
 
 src-tauri/src/api_key
 src-tauri/resources/stardict.db
+src-tauri/screen.png
