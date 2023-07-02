@@ -36,6 +36,14 @@ async fn lookup(word: String, db: State<'_, Db>) -> Result<String, String> {
 }
 
 #[tauri::command]
+async fn lookup_prs(word: String) -> Result<String, String> {
+    match dict::lookup_pronounce_from_mw(&word).await {
+        Ok(res) => Ok(res),
+        Err(e) => Err(e.to_string()),
+    }
+}
+
+#[tauri::command]
 fn close_window(app: AppHandle) {
     hide_window(&app)
 }
@@ -173,7 +181,7 @@ fn main() {
                 item_handle.set_title("Show Lookup").unwrap();
             }
         })
-        .invoke_handler(tauri::generate_handler![lookup, close_window])
+        .invoke_handler(tauri::generate_handler![lookup, close_window, lookup_prs])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

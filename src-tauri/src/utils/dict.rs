@@ -66,6 +66,14 @@ fn mw_prs_to_prs(mw: &Pronouce) -> Prs {
     }
 }
 
+pub async fn lookup_pronounce_from_mw(word: &str) -> Result<String> {
+    let def = lookup_from_mw(word).await?;
+    if def.prs.len() == 0 {
+        return Err(Error::msg("no pronouce"))
+    }
+    Ok(serde_json::to_string_pretty(&def.prs)?)
+}
+
 async fn lookup_from_mw(word: &str) -> Result<Word> {
     let mut res = req_api(word).await?;
     let def_value = loop {

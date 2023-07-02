@@ -20,14 +20,16 @@ import { AiOutlineSound } from "react-icons/ai";
 import { MdOpenInBrowser } from "react-icons/md";
 import { TbArrowsDiagonal2, TbArrowsDiagonalMinimize } from "react-icons/tb";
 
+type Prs = {
+  ipa: string;
+  audio: string;
+};
+
 type Definition = {
   hw: string;
   fl: string;
   def: string[];
-  prs: {
-    ipa: string;
-    audio: string;
-  }[];
+  prs: Prs[];
 };
 let windowIsLarge = false;
 
@@ -106,6 +108,39 @@ function App() {
     parseAndSetDef(res as string);
   }
 
+  const handlePrsClick = async () => {
+    const mp3 = def?.prs[0]?.audio;
+    if (mp3) {
+      playPrs(mp3);
+      return;
+    }
+
+    const newPrs = await invoke("lookup_prs", { word });
+    const prs = JSON.parse(newPrs as string);
+    if (!Array.isArray(prs) || prs.length === 0) {
+      return;
+    }
+    playPrs(prs[0].audio);
+    if (def) {
+      def.prs = prs;
+    }
+  };
+
+  const playPrs = (mp3: string) => {
+    let subDir = mp3[0];
+    if (mp3.startsWith("bix")) {
+      subDir = "bix";
+    } else if (mp3.startsWith("gg")) {
+      subDir = "gg";
+    } else if (mp3.startsWith("_")) {
+      subDir = "number";
+    }
+    const format = "mp3";
+    const mp3Url = `https://media.merriam-webster.com/audio/prons/en/us/${format}/${subDir}/${mp3}.${format}`;
+    // console.log(mp3Url);
+    new Audio(mp3Url).play();
+  };
+
   useEffect(() => {
     if (cardRef && cardRef.current) {
       let width = cardRef.current.offsetWidth;
@@ -170,23 +205,7 @@ function App() {
             borderRadius="full"
             variant="ghost"
             leftIcon={<AiOutlineSound />}
-            onClick={() => {
-              const mp3 = def?.prs[0]?.audio;
-              if (mp3) {
-                let subDir = mp3[0];
-                if (mp3.startsWith("bix")) {
-                  subDir = "bix";
-                } else if (mp3.startsWith("gg")) {
-                  subDir = "gg";
-                } else if (mp3.startsWith("_")) {
-                  subDir = "number";
-                }
-                const format = "mp3";
-                const mp3Url = `https://media.merriam-webster.com/audio/prons/en/us/${format}/${subDir}/${mp3}.${format}`;
-                // console.log(mp3Url);
-                new Audio(mp3Url).play();
-              }
-            }}
+            onClick={handlePrsClick}
           >
             {def?.prs[0]?.ipa}
           </Button>
