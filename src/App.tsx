@@ -73,6 +73,9 @@ let a = 0;
 function App() {
   const cardRef = useRef<HTMLInputElement | null>(null);
   const [def, setDef] = useState<Definition | null>(null);
+  const [prs, setPrs] = useState<Promise<HTMLAudioElement | null>>(
+    Promise.resolve(null)
+  );
   const parseAndSetDef = (payload: string) => {
     // console.log(payload);
     let new_def = parseDef(payload);
@@ -111,19 +114,19 @@ function App() {
   const handlePrsClick = async () => {
     const mp3 = def?.prs[0]?.audio;
     if (mp3) {
-      playPrs(mp3);
-      return;
+      return playPrs(mp3);
     }
 
+    console.log("invoke");
     const newPrs = await invoke("lookup_prs", { word });
     const prs = JSON.parse(newPrs as string);
     if (!Array.isArray(prs) || prs.length === 0) {
-      return;
+      return null;
     }
-    playPrs(prs[0].audio);
     if (def) {
       def.prs = prs;
     }
+    return playPrs(prs[0].audio);
   };
 
   const playPrs = (mp3: string) => {
@@ -138,7 +141,7 @@ function App() {
     const format = "mp3";
     const mp3Url = `https://media.merriam-webster.com/audio/prons/en/us/${format}/${subDir}/${mp3}.${format}`;
     // console.log(mp3Url);
-    new Audio(mp3Url).play();
+    return new Audio(mp3Url);
   };
 
   useEffect(() => {
@@ -154,6 +157,8 @@ function App() {
     if (hw) {
       setWord(hw);
     }
+    const newPrs = handlePrsClick();
+    setPrs(newPrs);
   }, [def]);
 
   useEffect(() => {
@@ -210,7 +215,9 @@ function App() {
             borderRadius="full"
             variant="ghost"
             leftIcon={<AiOutlineSound />}
-            onClick={handlePrsClick}
+            onClick={() => {
+              prs.then((p) => p && p.play());
+            }}
           >
             {def?.prs[0]?.ipa}
           </Button>
