@@ -1,9 +1,12 @@
-use screenshots::{DisplayInfo, Image, Screen};
+use std::io::Cursor;
+
+use screenshots::image::ImageFormat;
+use screenshots::{display_info::DisplayInfo, Screen};
 
 const IMG_WIDTH: i32 = 300;
 const IMG_HEIGHT: i32 = 100;
 
-pub fn get_img_pos() -> (Image, (i32, i32)) {
+pub fn get_img_pos() -> (Vec<u8>, (i32, i32)) {
     use mouse_position::mouse_position::Mouse;
     let position = Mouse::get_mouse_position();
     let (x, y) = match position {
@@ -22,33 +25,27 @@ struct Area {
     mouse_pos: (i32, i32),
 }
 
-pub fn get_img(x: i32, y: i32) -> (Image, (i32, i32)) {
+pub fn get_img(x: i32, y: i32) -> (Vec<u8>, (i32, i32)) {
     dbg!(x, y);
-    match DisplayInfo::from_point(x, y) {
-        Ok(_) => {}
-        Err(e) => {
-            dbg!(e);
-        }
-    };
-    dbg!(DisplayInfo::all().unwrap());
-    let display = DisplayInfo::from_point(x, y).unwrap();
-    let area = compute_img_area(&display, [x, y]);
-    let screen = Screen::new(&display);
+    let screen = Screen::from_point(x, y).unwrap();
+    let area = compute_img_area(screen.display_info, [x, y]);
     let image = screen
         .capture_area(area.left, area.top, area.width, area.height) // scale_factr
         .unwrap();
 
     #[cfg(debug_assertions)]
     {
-        use std::fs;
         println!("display: {:?}", screen);
         // let image = screen.capture().unwrap();
-        fs::write("screen.png", image.buffer()).unwrap();
+        image.save("screen.png").unwrap();
     }
-    return (image, area.mouse_pos);
+    let vec = Vec::new();
+    let mut buf = Cursor::new(vec);
+    image.write_to(&mut buf, ImageFormat::Png).unwrap();
+    return (buf.into_inner(), area.mouse_pos);
 }
 
-fn compute_img_area(display: &DisplayInfo, pos: [i32; 2]) -> Area {
+fn compute_img_area(display: DisplayInfo, pos: [i32; 2]) -> Area {
     let logical_w = IMG_WIDTH as f32 / display.scale_factor;
     let logical_h = IMG_HEIGHT as f32 / display.scale_factor;
 

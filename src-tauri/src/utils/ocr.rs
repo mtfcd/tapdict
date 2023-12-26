@@ -9,8 +9,16 @@ lazy_static! {
 
 pub async fn get_word(buf: Vec<u8>, pos: (i32, i32)) -> Result<String> {
     let mut tes = Tesseract::new(TESSDATA_DIR.lock().unwrap().as_deref(), Some("eng"))
+        .map_err(|e| {
+            println!("init tes err: {}", e);
+            e
+        })
         .unwrap()
         .set_image_from_mem(&buf)
+        .map_err(|e| {
+            println!("reg tes err: {}", e);
+            e
+        })
         .unwrap();
 
     let tsv = tes.get_tsv_text(1).unwrap();
